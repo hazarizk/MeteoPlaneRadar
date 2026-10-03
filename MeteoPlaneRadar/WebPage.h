@@ -187,7 +187,7 @@ td:first-child{color:var(--mut);width:50%}
     <details class="help">
       <summary data-i18n="plHelpTitle">Co je na obrazovce a jak se čte</summary>
       <ul class="hint">
-        <li data-i18n="plHelpZodiac">Zvěrokruh: dvanáct znamení po 30° v barvách živlů — červenooranžová oheň, hnědá země, tmavě šedá vzduch, modrá voda. Běží proti směru hodinových ručiček jako v horoskopu.</li>
+        <li data-i18n="plHelpZodiac">Zvěrokruh: dvanáct znamení po 30° v barvách živlů — červená oheň, zelená země, žlutá vzduch, modrá voda. Běží proti směru hodinových ručiček jako v horoskopu.</li>
         <li data-i18n="plHelpPlanets">Planety: symbol v barvě planety na své ekliptikální délce; čárka na vnitřním okraji prstence ukazuje přesný stupeň. Planety blízko sebe (konjunkce) se řadí pod sebe, nikdy přes sebe.</li>
         <li data-i18n="plHelpHorizon">Ztlumená planeta je právě pod obzorem ve vaší poloze, planeta v plné barvě je nad ním. Čára ASC–DSC je obzor.</li>
         <li data-i18n="plHelpRetro">Červené R u planety: retrográdní pohyb, planeta zdánlivě couvá zvěrokruhem.</li>
@@ -358,7 +358,7 @@ const D={
   planetNamesIntl:"mezinárodní (Aries, Taurus, Jupiter…)",
   planetNamesHint:"Ukládá se hned, bez restartu. Mezinárodní názvy jsou latinské, tedy stejné jako anglické.",
   plHelpTitle:"Co je na obrazovce a jak se čte",
-  plHelpZodiac:"Zvěrokruh: dvanáct znamení po 30° v barvách živlů — červenooranžová oheň, hnědá země, tmavě šedá vzduch, modrá voda. Běží proti směru hodinových ručiček jako v horoskopu.",
+  plHelpZodiac:"Zvěrokruh: dvanáct znamení po 30° v barvách živlů — červená oheň, zelená země, žlutá vzduch, modrá voda. Běží proti směru hodinových ručiček jako v horoskopu.",
   plHelpPlanets:"Planety: symbol v barvě planety na své ekliptikální délce; čárka na vnitřním okraji prstence ukazuje přesný stupeň. Planety blízko sebe (konjunkce) se řadí pod sebe, nikdy přes sebe.",
   plHelpHorizon:"Ztlumená planeta je právě pod obzorem ve vaší poloze, planeta v plné barvě je nad ním. Čára ASC–DSC je obzor.",
   plHelpRetro:"Červené R u planety: retrográdní pohyb, planeta zdánlivě couvá zvěrokruhem.",
@@ -424,7 +424,7 @@ const D={
   planetNamesIntl:"international (Aries, Taurus, Jupiter…)",
   planetNamesHint:"Saved immediately, no restart. The international names are the Latin ones, which are the English ones.",
   plHelpTitle:"What is on the screen and how to read it",
-  plHelpZodiac:"Zodiac: twelve signs of 30° in the colours of the elements - orange-red fire, brown earth, dark grey air, blue water. It runs anticlockwise, as on a horoscope wheel.",
+  plHelpZodiac:"Zodiac: twelve signs of 30° in the colours of the elements - red fire, green earth, yellow air, blue water. It runs anticlockwise, as on a horoscope wheel.",
   plHelpPlanets:"Planets: the symbol in the planet's colour at its ecliptic longitude; the tick on the inner edge of the ring marks the exact degree. Planets close together (a conjunction) stack inwards, never on top of each other.",
   plHelpHorizon:"A dimmed planet is below the horizon at your location right now, one in full colour is above it. The ASC-DSC line is the horizon.",
   plHelpRetro:"A red R next to a planet: retrograde motion, the planet appears to move backwards through the zodiac.",

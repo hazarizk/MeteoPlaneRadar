@@ -78,14 +78,10 @@ static const uint16_t C_BODY[AB_COUNT] = {
   0xA514,   // Node     - grey
 };
 
-// The four elements, dark for the sector and bright for its glyph. Fire
-// red-orange, earth olive-brown, air a dark grey (the panel has no
-// transparency; "nothing there" is the nearest it gets to air) with a white
-// glyph, water blue. Fire is pushed towards orange and earth towards olive on
-// purpose: a dark red next to a dark brown is one colour on this panel at
-// night brightness, and the whole point of the ring is telling them apart.
-static const uint16_t C_ELEM_FILL[4] = { 0x68E0, 0x41C2, 0x2966, 0x094C };
-static const uint16_t C_ELEM_TEXT[4] = { 0xFD45, 0xDDEF, 0xFFFF, 0x7DFF };
+// The four elements, dark for the sector and bright for its name. Fire red,
+// earth green, air yellow, water blue: the convention every chart uses.
+static const uint16_t C_ELEM_FILL[4] = { 0x5000, 0x0222, 0x4A20, 0x00EB };
+static const uint16_t C_ELEM_TEXT[4] = { 0xFBCB, 0x7F2F, 0xFF2F, 0x7DBF };
 
 // Aspects: opposition, square, trine, sextile. Hard aspects warm, soft ones
 // cool, dim enough to sit under the planets rather than compete with them.
