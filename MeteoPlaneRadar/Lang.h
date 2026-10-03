@@ -94,7 +94,50 @@
   X(S_WIND,          "vitr",               "vítr",               "wind") \
   X(S_HYDRO,         "voda",               "voda",               "hydro") \
   X(S_BIOMASS,       "biomasa",            "biomasa",            "biomass") \
-  X(S_OTHER,         "ostatni",            "ostatní",            "other")
+  X(S_OTHER,         "ostatni",            "ostatní",            "other") \
+  X(S_PLANETS,       "Planety",            "Planety",            "Planets") \
+  X(S_NO_TIME,       "Cekam na cas",       "Čekám na čas",       "Waiting for the clock") \
+  X(S_DISTANCE,      "Vzdalenost",         "Vzdálenost",         "Distance") \
+  X(S_DAILY,         "Denni pohyb",        "Denní pohyb",        "Daily motion") \
+  X(S_PERIOD,        "Obeh",               "Oběh",               "Orbit") \
+  X(S_FROM_SUN,      "Od Slunce",          "Od Slunce",          "From the Sun") \
+  X(S_ELONGATION,    "Elongace",           "Elongace",           "Elongation") \
+  X(S_ILLUMINATED,   "Osvetleno",          "Osvětleno",          "Illuminated") \
+  X(S_WAXING,        "dorusta",            "dorůstá",            "waxing") \
+  X(S_WANING,        "couva",              "couvá",              "waning") \
+  X(S_ASC_LEFT,      "ASC vlevo",          "ASC vlevo",          "ASC left") \
+  X(S_ARIES_LEFT,    "Beran vlevo",        "Beran vlevo",        "Aries left") \
+  X(S_DAYS,          "dni",                "dní",                "days") \
+  X(S_YEARS,         "let",                "let",                "years") \
+  X(S_SKY,           "Obloha",             "Obloha",             "Sky") \
+  X(S_BELOW_HORIZON, "pod obzorem",        "pod obzorem",        "below the horizon") \
+  X(S_DAYTIME,       "ve dne",             "ve dne",             "daytime") \
+  /* The bodies and the signs are indexed by AstroBody and by sign number:   \
+     ScreenPlanets does T((StrId)(S_P_SUN + body)), so these two runs have to \
+     stay contiguous and in this order. */                                    \
+  X(S_P_SUN,         "Slunce",             "Slunce",             "Sun") \
+  X(S_P_MOON,        "Mesic",              "Měsíc",              "Moon") \
+  X(S_P_MERCURY,     "Merkur",             "Merkur",             "Mercury") \
+  X(S_P_VENUS,       "Venuse",             "Venuše",             "Venus") \
+  X(S_P_MARS,        "Mars",               "Mars",               "Mars") \
+  X(S_P_JUPITER,     "Jupiter",            "Jupiter",            "Jupiter") \
+  X(S_P_SATURN,      "Saturn",             "Saturn",             "Saturn") \
+  X(S_P_URANUS,      "Uran",               "Uran",               "Uranus") \
+  X(S_P_NEPTUNE,     "Neptun",             "Neptun",             "Neptune") \
+  X(S_P_PLUTO,       "Pluto",              "Pluto",              "Pluto") \
+  X(S_P_NODE,        "Mesicni uzel",       "Měsíční uzel",       "Lunar node") \
+  X(S_Z_ARIES,       "Beran",              "Beran",              "Aries") \
+  X(S_Z_TAURUS,      "Byk",                "Býk",                "Taurus") \
+  X(S_Z_GEMINI,      "Blizenci",           "Blíženci",           "Gemini") \
+  X(S_Z_CANCER,      "Rak",                "Rak",                "Cancer") \
+  X(S_Z_LEO,         "Lev",                "Lev",                "Leo") \
+  X(S_Z_VIRGO,       "Panna",              "Panna",              "Virgo") \
+  X(S_Z_LIBRA,       "Vahy",               "Váhy",               "Libra") \
+  X(S_Z_SCORPIO,     "Stir",               "Štír",               "Scorpio") \
+  X(S_Z_SAGITTARIUS, "Strelec",            "Střelec",            "Sagittarius") \
+  X(S_Z_CAPRICORN,   "Kozoroh",            "Kozoroh",            "Capricorn") \
+  X(S_Z_AQUARIUS,    "Vodnar",             "Vodnář",             "Aquarius") \
+  X(S_Z_PISCES,      "Ryby",               "Ryby",               "Pisces")
 
 enum StrId : uint16_t {
 #define X(id, cz, czw, en) id,
@@ -111,6 +154,11 @@ const char* T(StrId id);
 
 // For a browser / captive portal - real UTF-8 with diacritics.
 const char* TW(StrId id);
+
+// The English column regardless of the active language. The planets screen
+// uses it for the international (Latin) names of the signs and planets when
+// the user asks for those on a Czech interface.
+const char* TE(StrId id);
 
 // Calendar names in the active language. Both are ASCII-only: they are drawn on
 // the clock and forecast screens, never sent to a browser.

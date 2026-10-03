@@ -23,9 +23,10 @@ ESP32-S3-Touch-LCD-2.1 a ESP32-S3-Touch-LCD-2.8C a nastavuje se z prohlížeče.
 | **Předpověď** | nyní, +3 h, +6 h, dnes, zítra, pozítří a další dny, ovzduší a pyl | Open-Meteo |
 | **Cena elektřiny** | spotová cena na 24hodinovém ciferníku, dnes i zítra | OTE přes spotovaelektrina.cz |
 | **Výroba ČR** | z čeho se právě vyrábí, podíl OZE, spotřeba, vývoz | ENTSO-E přes energy-charts |
+| **Planety** | geocentrický pohled jako v horoskopu: zvěrokruh, planety, ascendent, aspekty, fáze Měsíce, co je právě nad obzorem; klepnutí na planetu ukáže detail | počítá se v zařízení |
 | **Nastavení** | jas, orientace mapy, jednotky, jazyk | — |
 
-Prvních šest jde vypnout, Nastavení je dostupné vždy. Rozhraní je česky nebo
+Prvních sedm jde vypnout, Nastavení je dostupné vždy. Rozhraní je česky nebo
 anglicky.
 
 Obě energetické obrazovky jsou po aktualizaci vypnuté (zapnou se ve webovém
@@ -92,7 +93,7 @@ nastavení.
 | Gesto | Akce |
 | --- | --- |
 | **Přejetí prstem** | změna rozsahu (letadla, meteoradar) |
-| **Krátké klepnutí** | výběr letadla / přepnutí den–noc na hodinách |
+| **Krátké klepnutí** | výběr letadla / přepnutí den–noc na hodinách / detail planety |
 | **Dlouhý stisk vlevo / vpravo** | předchozí / následující obrazovka |
 | **BOOT při startu (~3 s)** | tovární reset |
 
@@ -152,6 +153,8 @@ WebConfig.* WebPage.h webový server, API, portál, OTA
 Net.*                 sdílené HTTPS stahování
 Forecast.*            Open-Meteo: předpověď, slunce, ovzduší
 Energy.*              spotová cena elektřiny a mix výroby ČR
+Astro.*               polohy planet z dráhových elementů (bez sítě)
+ScreenPlanets.*       obrazovka Planety: zvěrokruh, planety, ascendent, aspekty
 RainViewer.*          dlaždicový radar
 Screen*.{h,cpp}       jednotlivé obrazovky
 ```

@@ -152,7 +152,15 @@ td:first-child{color:var(--mut);width:50%}
       <label class="chk"><input type="checkbox" id="sForecast"><span data-i18n="scrForecast">Předpověď</span></label>
       <label class="chk"><input type="checkbox" id="sPrice"><span data-i18n="scrPrice">Cena elektřiny</span></label>
       <label class="chk"><input type="checkbox" id="sMix"><span data-i18n="scrMix">Výroba ČR</span></label>
+      <label class="chk"><input type="checkbox" id="sPlanets"><span data-i18n="scrPlanets">Planety</span></label>
     </div>
+    <p class="hint" data-i18n="planetsHint">Planety: geocentrický pohled jako v horoskopu — zvěrokruh, planety podle délky na ekliptice, ascendent pro vaši polohu a aspekty. Počítá se přímo v zařízení, žádná data se nestahují. Klepnutím na planetu se zobrazí znamení, vzdálenost, denní pohyb a oběžné údaje.</p>
+    <div class="row"><label data-i18n="planetNames">Názvy na obrazovce Planety</label>
+      <select id="planetIntl">
+        <option value="0" data-i18n="planetNamesLang">podle jazyka rozhraní</option>
+        <option value="1" data-i18n="planetNamesIntl">mezinárodní (Aries, Taurus, Jupiter…)</option>
+      </select></div>
+    <p class="hint" data-i18n="planetNamesHint">Ukládá se hned, bez restartu. Mezinárodní názvy jsou latinské, tedy stejné jako anglické.</p>
     <p class="hint" data-i18n="scrHint">Vypnuté obrazovky se přeskakují. Nastavení je dostupné vždy.</p>
     <p class="hint" data-i18n="restartHint">Změna obrazovek, zdroje radaru nebo polohy potřebuje restart, takže se ukládá až tlačítkem dole.</p>
     <div class="row"><label data-i18n="autoRotate">Automatické střídání (sekundy, 0 = vypnuto)</label>
@@ -325,7 +333,11 @@ td:first-child{color:var(--mut);width:50%}
 <script>
 const D={
  cs:{tabCtl:"Ovládání",tabLoc:"Poloha",tabScr:"Obrazovky",tabLook:"Vzhled",tabPlanes:"Letadla",tabEnergy:"Energie",tabSys:"Systém",
-  scrPrice:"Cena elektřiny",scrMix:"Výroba ČR",
+  scrPrice:"Cena elektřiny",scrMix:"Výroba ČR",scrPlanets:"Planety",
+  planetNames:"Názvy na obrazovce Planety",planetNamesLang:"podle jazyka rozhraní",
+  planetNamesIntl:"mezinárodní (Aries, Taurus, Jupiter…)",
+  planetNamesHint:"Ukládá se hned, bez restartu. Mezinárodní názvy jsou latinské, tedy stejné jako anglické.",
+  planetsHint:"Planety: geocentrický pohled jako v horoskopu — zvěrokruh, planety podle délky na ekliptice, ascendent pro vaši polohu a aspekty. Počítá se přímo v zařízení, žádná data se nestahují. Klepnutím na planetu se zobrazí znamení, vzdálenost, denní pohyb a oběžné údaje.",
   energyPrice:"Cena elektřiny",energyMix:"Výroba ČR",
   mixCountry:"Země",
   mixCountryHint:"Rozhraní energy-charts pokrývá Evropu. Mimo ni obrazovka data nemá a sama se vypne.",
@@ -377,7 +389,11 @@ const D={
   saved:"Uloženo",failed:"Nepovedlo se",searching:"Hledám…",nothing:"Nic nenalezeno",
   disabled:"Obrazovka je vypnutá",confirmReset:"Opravdu smazat všechna nastavení včetně WiFi?"},
  en:{tabCtl:"Control",tabLoc:"Location",tabScr:"Screens",tabLook:"Appearance",tabPlanes:"Aircraft",tabEnergy:"Energy",tabSys:"System",
-  scrPrice:"Electricity price",scrMix:"Czech generation",
+  scrPrice:"Electricity price",scrMix:"Czech generation",scrPlanets:"Planets",
+  planetNames:"Names on the Planets screen",planetNamesLang:"interface language",
+  planetNamesIntl:"international (Aries, Taurus, Jupiter…)",
+  planetNamesHint:"Saved immediately, no restart. The international names are the Latin ones, which are the English ones.",
+  planetsHint:"Planets: a geocentric view as on a horoscope wheel - the zodiac, the planets by ecliptic longitude, the ascendant for your location and the aspects. Computed on the device itself, nothing is downloaded. Tap a planet for its sign, distance, daily motion and orbital data.",
   energyPrice:"Electricity price",energyMix:"Czech generation",
   mixCountry:"Country",
   mixCountryHint:"The energy-charts API covers Europe. Outside it the screen has no data and switches itself off.",
@@ -454,7 +470,7 @@ function hexToRgb565(h){const r=parseInt(h.substr(1,2),16),g=parseInt(h.substr(3
  return ((r>>3)<<11)|((g>>2)<<5)|(b>>3);}
 
 const SCR=[["scrClock",0],["scrPlanes",1],["scrMeteo",2],["scrForecast",3],
-           ["scrPrice",4],["scrMix",5],["settings",6]];
+           ["scrPrice",4],["scrMix",5],["scrPlanets",6],["settings",7]];
 function drawScrBtns(cur,enabled){
  $("scrBtns").innerHTML=SCR.map(([k,i])=>{
   const on=enabled?enabled[i]:true;
@@ -514,6 +530,7 @@ const AUTO = [
  ["priceFee","change","priceFee",e=>+e.value],
  ["priceVat","change","priceVat",e=>+e.value],
  ["mixCountry","change","mixCountry",e=>e.value],
+ ["planetIntl","change","planetIntl",e=>e.value=="1"],
 ];
 function wireAutoSave(){
  AUTO.forEach(([id,ev,key,get])=>{
@@ -535,6 +552,8 @@ async function load(){
  $("sClock").checked=CFG.screens.clock;$("sPlanes").checked=CFG.screens.planes;
  $("sMeteo").checked=CFG.screens.meteo;$("sForecast").checked=CFG.screens.forecast;
  $("sPrice").checked=!!CFG.screens.price;$("sMix").checked=!!CFG.screens.mix;
+ $("sPlanets").checked=!!CFG.screens.planets;
+ $("planetIntl").value=CFG.planetIntl?"1":"0";
  $("priceFee").value=CFG.priceFee||0;$("priceVat").value=CFG.priceVat||0;
  $("mixCountry").value=CFG.mixCountry||"cz";
  feeHint();
@@ -606,8 +625,10 @@ function body(){return{lat:parseFloat($("lat").value),lon:parseFloat($("lon").va
  password:$("adminPass").value,newPassword:$("newPass").value,
  priceFee:+$("priceFee").value,priceVat:+$("priceVat").value,
  mixCountry:$("mixCountry").value,
+ planetIntl:$("planetIntl").value=="1",
  screens:{clock:$("sClock").checked,planes:$("sPlanes").checked,meteo:$("sMeteo").checked,
-  forecast:$("sForecast").checked,price:$("sPrice").checked,mix:$("sMix").checked}};}
+  forecast:$("sForecast").checked,price:$("sPrice").checked,mix:$("sMix").checked,
+  planets:$("sPlanets").checked}};}
 
 async function save(){
  const r=await fetch("/api/config",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body())});

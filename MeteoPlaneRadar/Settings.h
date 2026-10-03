@@ -82,6 +82,14 @@ void    Settings_SetRadarSource(uint8_t s);
 bool    Settings_MeteoLegend();
 void    Settings_SetMeteoLegend(bool on);
 
+// --- Planets ----------------------------------------------------------------
+// Names of the signs and planets on the planets screen: false = in the
+// interface language, true = the international (Latin / English) ones - Aries,
+// Taurus, Jupiter - whatever language the rest of the device speaks. Charts
+// are mostly read in those names, so a Czech interface can still show them.
+bool    Settings_PlanetNamesIntl();
+void    Settings_SetPlanetNamesIntl(bool on);
+
 // --- Energy -----------------------------------------------------------------
 //
 // What the user pays on top of the exchange price. Everything the device knows

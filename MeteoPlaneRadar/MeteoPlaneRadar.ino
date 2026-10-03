@@ -19,7 +19,8 @@
 //    4) Forecast    - now/+3h/+6h, today/tomorrow/after, then the weekdays
 //    5) Price       - spot electricity price as a 24-hour dial (OTE)
 //    6) Generation  - what the Czech grid is running on right now (ENTSO-E)
-//    7) Settings    - always reachable, and shows the web address
+//    7) Planets     - geocentric chart of the planets, computed on the device
+//    8) Settings    - always reachable, and shows the web address
 //
 //  The two energy screens are OFF on a device that is updated rather than newly
 //  set up - see the note above the screen indices in Config.h.
@@ -97,6 +98,7 @@
 #include "ScreenForecast.h"
 #include "ScreenPrice.h"
 #include "ScreenMix.h"
+#include "ScreenPlanets.h"
 #include "ScreenSettings.h"
 #include "Forecast.h"
 #include "Energy.h"
@@ -285,6 +287,7 @@ static void drawActive() {
     case SCREEN_FORECAST_I: ScreenForecast_Draw(); break;
     case SCREEN_PRICE_I:    ScreenPrice_Draw();    break;
     case SCREEN_MIX_I:      ScreenMix_Draw();      break;
+    case SCREEN_PLANETS_I:  ScreenPlanets_Draw();  break;
     case SCREEN_SETTINGS_I: ScreenSettings_Draw(); break;
   }
   drawScreenDots();
@@ -299,6 +302,7 @@ static void enterActive() {
     case SCREEN_FORECAST_I: ScreenForecast_Enter(); break;
     case SCREEN_PRICE_I:    ScreenPrice_Enter();    break;
     case SCREEN_MIX_I:      ScreenMix_Enter();      break;
+    case SCREEN_PLANETS_I:  ScreenPlanets_Enter();  break;
     case SCREEN_SETTINGS_I: ScreenSettings_Enter(); break;
   }
   drawActive();
@@ -339,6 +343,7 @@ static bool activeTick() {
     case SCREEN_FORECAST_I: return ScreenForecast_Tick();
     case SCREEN_PRICE_I:    return ScreenPrice_Tick();
     case SCREEN_MIX_I:      return ScreenMix_Tick();
+    case SCREEN_PLANETS_I:  return ScreenPlanets_Tick();
     case SCREEN_SETTINGS_I: return ScreenSettings_Tick();
   }
   return false;
@@ -352,6 +357,9 @@ static void activeChangeRange(int dir) {
     // same thing it means everywhere else - show me the other one - so it is
     // wired to the same gesture rather than inventing a second one.
     case SCREEN_PRICE_I:  ScreenPrice_ChangeRange(dir);   break;
+    // Likewise the planets: a swipe turns the wheel between its two
+    // orientations.
+    case SCREEN_PLANETS_I: ScreenPlanets_ChangeRange(dir); break;
     default: break;   // the other screens have no range
   }
 }
@@ -361,15 +369,23 @@ static bool activeTap(int x, int y) {
     case SCREEN_CLOCK_I:    return ScreenClock_HandleTap(x, y);
     case SCREEN_PLANES_I:   return ScreenPlanes_HandleTap(x, y);
     case SCREEN_PRICE_I:    return ScreenPrice_HandleTap(x, y);
+    case SCREEN_PLANETS_I:  return ScreenPlanets_HandleTap(x, y);
     case SCREEN_SETTINGS_I: return ScreenSettings_HandleTap(x, y);
     default: return false;
   }
 }
 
-// Is a modal (the aircraft detail) open? Then swipe/long-press are captured to
-// close it rather than change range / switch screen.
+// Is a modal (the aircraft or planet detail) open? Then swipe/long-press are
+// captured to close it rather than change range / switch screen.
 static bool activeModalOpen() {
-  return (s_screen == SCREEN_PLANES_I) && ScreenPlanes_DetailOpen();
+  if (s_screen == SCREEN_PLANES_I)  return ScreenPlanes_DetailOpen();
+  if (s_screen == SCREEN_PLANETS_I) return ScreenPlanets_DetailOpen();
+  return false;
+}
+
+static void closeActiveModal() {
+  if (s_screen == SCREEN_PLANES_I)  ScreenPlanes_CloseDetail();
+  if (s_screen == SCREEN_PLANETS_I) ScreenPlanets_CloseDetail();
 }
 
 // Act on a gesture captured earlier (possibly during a download). Called only
@@ -384,12 +400,12 @@ static void dispatchTouch() {
     case PEND_SWIPE:
       // With the detail open a swipe just closes it, so you cannot accidentally
       // re-scale the map behind the panel.
-      if (activeModalOpen()) { ScreenPlanes_CloseDetail(); drawActive(); }
+      if (activeModalOpen()) { closeActiveModal(); drawActive(); }
       else                   { activeChangeRange(a); drawActive(); }
       s_touchPauseUntil = millis() + autoRotatePauseMs();
       break;
     case PEND_LONG:
-      if (activeModalOpen()) { ScreenPlanes_CloseDetail(); drawActive(); }
+      if (activeModalOpen()) { closeActiveModal(); drawActive(); }
       else switchScreen(a < LCD_WIDTH / 2 ? -1 : +1);
       s_touchPauseUntil = millis() + autoRotatePauseMs();
       break;
@@ -648,13 +664,13 @@ void loop() {
   {
     const int scr = WebConfig_TakeScreen();
     if (scr >= 0) {
-      if (activeModalOpen()) ScreenPlanes_CloseDetail();
+      if (activeModalOpen()) closeActiveModal();
       gotoScreen(scr);
       s_touchPauseUntil = millis() + autoRotatePauseMs();
     }
     const int step = WebConfig_TakeScreenStep();
     if (step) {
-      if (activeModalOpen()) ScreenPlanes_CloseDetail();
+      if (activeModalOpen()) closeActiveModal();
       switchScreen(step);
       s_touchPauseUntil = millis() + autoRotatePauseMs();
     }

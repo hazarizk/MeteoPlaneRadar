@@ -11,6 +11,48 @@ pohromadě v `MeteoPlaneRadar/Config.h`.
 
 ---
 
+## [Unreleased]
+
+### Přidáno
+
+- **Planety.** Nová obrazovka: geocentrický pohled na sluneční soustavu tak,
+  jak ho kreslí horoskop. Po obvodu zvěrokruh s dvanácti znameními v barvách
+  živlů (oheň, země, vzduch, voda) a stupňovou stupnicí, uvnitř planety podle
+  své ekliptikální délky, každá ve vlastní barvě a s ukazatelem na přesný
+  stupeň. Slunce, Měsíc, Merkur až Pluto a severní měsíční uzel. Červený
+  prstenec kolem planety znamená retrográdní pohyb. Dvě planety v konjunkci se
+  skládají pod sebe, nikdy přes sebe.
+
+  Pro polohu zařízení se kreslí osa ascendent–descendent a MC–IC, uprostřed
+  je Země, fáze Měsíce (osvětlení, dorůstá/couvá) a ascendent slovy. Mezi
+  planetami jsou barevné aspekty: opozice, kvadratura, trigon, sextil
+  (orbis 6°, u Slunce a Měsíce 8°). Klepnutí doprostřed je schová.
+
+  Poloha zařízení (ta samá, co má radar) rozhoduje i o tom, co je právě nad
+  obzorem: planety pod obzorem jsou na kole duté (tmavá výplň, barevný
+  okraj), planety nad ním plné. Klepnutí na planetu otevře detail: znamení a
+  stupeň, obloha (výška nad obzorem a světová strana, „pod obzorem“, nebo
+  „ve dne“, když ji přesvítí Slunce), vzdálenost od Země (Měsíc v km), denní
+  pohyb (záporný = retrográdní), oběžná doba, střední vzdálenost od Slunce,
+  oběžná rychlost a elongace; u Měsíce osvětlení.
+  Přejetí prstem otočí kolo: ascendent vlevo (jako v horoskopu), nebo
+  0° Berana vlevo napevno. Dálkové ovládání na webu umí totéž.
+
+  Všechno se počítá přímo v zařízení z Keplerových dráhových elementů podle
+  Paula Schlytera (včetně hlavních poruch Měsíce, Jupitera, Saturnu a Uranu a
+  řady pro Pluto). Žádný síťový zdroj, žádný klíč: stačí čas, který hodiny
+  mají z hlavičky Date. Přesnost je několik úhlových minut, ověřeno proti
+  PyEphem na letech 2000–2045. Délky jsou tropické (znamení, ne souhvězdí).
+
+  V záložce Obrazovky je volba **Názvy na obrazovce Planety**: podle jazyka
+  rozhraní, nebo mezinárodní (latinské: Aries, Taurus, Jupiter…) i na českém
+  rozhraní. Ukládá se hned, bez restartu.
+
+  Obrazovka je ve stávajících zařízeních po aktualizaci vypnutá a zapíná se
+  v záložce Obrazovky, ze stejného důvodu jako energetické obrazovky v 0.7.0:
+  index je připojený na konec, bity v NVS pro ostatní obrazovky zůstávají.
+  Nastavení se posouvá z indexu 6 na 7.
+
 ## [0.7.0]
 
 ### Přidáno

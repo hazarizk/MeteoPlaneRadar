@@ -323,6 +323,11 @@
 //  Settings screen when it was updated has "4" stored as its last screen, which
 //  now means Prices. That screen is off by default, so the boot check in the
 //  .ino notices and falls back to the first enabled one. It corrects itself.
+//
+//  0.8.0 note: the planets screen is appended for the same reason. Bit 6
+//  reads back as 0 on an existing device, so it arrives switched off and is
+//  found in the web UI; Settings moves from 6 to 7, with the same
+//  self-correcting side effect for a device that was sitting on it.
 // ---------------------------------------------------------------------------
 #define SCREEN_CLOCK_I    0
 #define SCREEN_PLANES_I   1
@@ -330,8 +335,9 @@
 #define SCREEN_FORECAST_I 3
 #define SCREEN_PRICE_I    4
 #define SCREEN_MIX_I      5
-#define SCREEN_SETTINGS_I 6
-#define SCREEN_N          7
+#define SCREEN_PLANETS_I  6
+#define SCREEN_SETTINGS_I 7
+#define SCREEN_N          8
 
 // Automatic screen cycling: 0 = off, otherwise SECONDS between switches (it was
 // minutes up to 0.6.0 - see Settings.h).

@@ -9,6 +9,7 @@
 #include "ScreenPlanes.h"
 #include "ScreenWeather.h"
 #include "ScreenPrice.h"
+#include "ScreenPlanets.h"
 #include "Settings.h"
 #include "Status.h"
 #include "Version.h"
@@ -280,6 +281,8 @@ static void handleStatus() {
   // the remote control can step through, so it answers here too and the -/+
   // buttons stay live instead of greying out.
   else if (scr == SCREEN_PRICE_I)  ScreenPrice_RangeText(rb, sizeof(rb));
+  // The planets screen's two states are the two orientations of the wheel.
+  else if (scr == SCREEN_PLANETS_I) ScreenPlanets_RangeText(rb, sizeof(rb));
   doc["range"] = rb;                       // empty on screens without one
 
   JsonArray en = doc["enabled"].to<JsonArray>();

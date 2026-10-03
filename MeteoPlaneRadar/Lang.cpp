@@ -40,6 +40,11 @@ const char* TW(StrId id) {
   return (s_lang == LANG_EN) ? EN_ALL[id] : CZ_WEB[id];
 }
 
+const char* TE(StrId id) {
+  if (id >= STR_COUNT) return "";
+  return EN_ALL[id];
+}
+
 // Sunday first, to line up with struct tm's tm_wday.
 static const char* const WD_CZ[7] = { "Ne", "Po", "Ut", "St", "Ct", "Pa", "So" };
 static const char* const WD_EN[7] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };

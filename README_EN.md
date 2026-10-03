@@ -63,9 +63,10 @@ It is not a phone and does not try to be one.
 | **Forecast** | now, two 3-hour windows, today and six more days, air quality and pollen | Open-Meteo |
 | **Electricity price** | spot price on a quarter-hour dial, today and tomorrow | OTE via spotovaelektrina.cz |
 | **Generation** | what the grid is running on, renewable share, load, export | Energy-Charts (Fraunhofer ISE) |
+| **Planets** | geocentric view as on a horoscope wheel: zodiac, planets, ascendant, aspects, Moon phase, what is above the horizon right now; tap a planet for its detail | computed on the device |
 | **Settings** | brightness, map orientation, units, language | — |
 
-Any of the first six can be switched off in the browser; Settings is always
+Any of the first seven can be switched off in the browser; Settings is always
 reachable.
 
 Both energy screens are **off after an update** — turn them on in the browser.
@@ -257,7 +258,7 @@ startup**, which is a factory reset and also erases WiFi.
 | Gesture | Action |
 | --- | --- |
 | **Swipe** left/right | Change the range (aircraft, weather radar) |
-| **Short tap** | Select an aircraft; on the clock, toggle day/night |
+| **Short tap** | Select an aircraft; on the clock, toggle day/night; on the planets, open a planet's detail |
 | **Long press, left half** | Previous screen |
 | **Long press, right half** | Next screen |
 | **Hold BOOT at startup (~3 s)** | Factory reset |
@@ -309,6 +310,8 @@ WebConfig.* WebPage.h web server, API, captive portal, OTA
 Net.*                 shared HTTPS fetching
 Forecast.*            Open-Meteo: forecast, sun times, air quality
 Energy.*              spot electricity price and generation mix
+Astro.*               planetary positions from orbital elements (no network)
+ScreenPlanets.*       the Planets screen: zodiac, planets, ascendant, aspects
 TimeZone.*            time zone from the location
 RainViewer.*          tile radar
 Screen*.{h,cpp}       individual screens
