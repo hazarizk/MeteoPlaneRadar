@@ -193,7 +193,7 @@ td:first-child{color:var(--mut);width:50%}
         <li data-i18n="plHelpRetro">Červené R u planety: retrográdní pohyb, planeta zdánlivě couvá zvěrokruhem.</li>
         <li data-i18n="plHelpAxes">Šipky ASC a MC: ascendent (stupeň, který právě vychází na východě) a střed nebe (stupeň na jižním poledníku). Počítají se z vaší polohy a času.</li>
         <li data-i18n="plHelpAspects">Barevné čáry uprostřed jsou aspekty, jen těsné do 2° od přesného úhlu: červená opozice (180°), oranžová kvadratura (90°), modrá trigon (120°), zelená sextil (60°). Konjunkce se nekreslí, je vidět jako planety u sebe. Klepnutí doprostřed čáry schová a zase ukáže.</li>
-        <li data-i18n="plHelpMoon">Uprostřed je Měsíc s dnešní fází (osvětlená část kotouče), pod ním dorůstá/couvá a ascendent slovy.</li>
+        <li data-i18n="plHelpMoon">Uprostřed je Měsíc s dnešní fází (osvětlená část kotouče), pod ním dorůstá/couvá a ascendent slovy. Je to jen náhled fáze, ne poloha: skutečné místo Měsíce ve zvěrokruhu ukazuje symbol ☽ na kole jako u ostatních planet.</li>
         <li data-i18n="plHelpControls">Ovládání: klepnutí na planetu otevře detail (znamení a stupeň, obloha, vzdálenost, denní pohyb, oběh, vzdálenost od Slunce, rychlost, elongace; u Měsíce osvětlení). Přejetí prstem otočí kolo: ascendent vlevo, nebo 0° Berana vlevo napevno. Dlouhý stisk přepne obrazovku.</li>
         <li data-i18n="plHelpSource">Polohy se počítají v zařízení z dráhových elementů (tropický zodiak, geocentricky, střední měsíční uzel), s přesností na několik úhlových minut proti Swiss Ephemeris. Čas je UTC z hlavičky Date.</li>
       </ul>
@@ -364,7 +364,7 @@ const D={
   plHelpRetro:"Červené R u planety: retrográdní pohyb, planeta zdánlivě couvá zvěrokruhem.",
   plHelpAxes:"Šipky ASC a MC: ascendent (stupeň, který právě vychází na východě) a střed nebe (stupeň na jižním poledníku). Počítají se z vaší polohy a času.",
   plHelpAspects:"Barevné čáry uprostřed jsou aspekty, jen těsné do 2° od přesného úhlu: červená opozice (180°), oranžová kvadratura (90°), modrá trigon (120°), zelená sextil (60°). Konjunkce se nekreslí, je vidět jako planety u sebe. Klepnutí doprostřed čáry schová a zase ukáže.",
-  plHelpMoon:"Uprostřed je Měsíc s dnešní fází (osvětlená část kotouče), pod ním dorůstá/couvá a ascendent slovy.",
+  plHelpMoon:"Uprostřed je Měsíc s dnešní fází (osvětlená část kotouče), pod ním dorůstá/couvá a ascendent slovy. Je to jen náhled fáze, ne poloha: skutečné místo Měsíce ve zvěrokruhu ukazuje symbol ☽ na kole jako u ostatních planet.",
   plHelpControls:"Ovládání: klepnutí na planetu otevře detail (znamení a stupeň, obloha, vzdálenost, denní pohyb, oběh, vzdálenost od Slunce, rychlost, elongace; u Měsíce osvětlení). Přejetí prstem otočí kolo: ascendent vlevo, nebo 0° Berana vlevo napevno. Dlouhý stisk přepne obrazovku.",
   plHelpSource:"Polohy se počítají v zařízení z dráhových elementů (tropický zodiak, geocentricky, střední měsíční uzel), s přesností na několik úhlových minut proti Swiss Ephemeris. Čas je UTC z hlavičky Date.",
   planetsHint:"Geocentrický pohled jako v horoskopu — zvěrokruh, planety podle délky na ekliptice, ascendent pro vaši polohu a aspekty. Počítá se přímo v zařízení, žádná data se nestahují. Klepnutím na planetu se zobrazí znamení, vzdálenost, denní pohyb a oběžné údaje.",
@@ -430,7 +430,7 @@ const D={
   plHelpRetro:"A red R next to a planet: retrograde motion, the planet appears to move backwards through the zodiac.",
   plHelpAxes:"The ASC and MC arrows: the ascendant (the degree rising in the east right now) and the midheaven (the degree on the southern meridian). Both come from your location and the time.",
   plHelpAspects:"The coloured lines in the middle are aspects, only tight ones within 2° of exact: red opposition (180°), orange square (90°), blue trine (120°), green sextile (60°). Conjunctions are not drawn, they show as planets next to each other. Tap the middle to hide or show the lines.",
-  plHelpMoon:"In the middle is the Moon with tonight's phase (the lit part of the disc), under it waxing/waning and the ascendant in words.",
+  plHelpMoon:"In the middle is the Moon with tonight's phase (the lit part of the disc), under it waxing/waning and the ascendant in words. That is only the phase, not a position: where the Moon actually stands in the zodiac is shown by the ☽ symbol on the wheel, like every other planet.",
   plHelpControls:"Controls: tap a planet for its detail (sign and degree, sky, distance, daily motion, orbit, distance from the Sun, speed, elongation; for the Moon the illumination). Swipe to turn the wheel: ascendant on the left, or 0° Aries on the left fixed. A long press changes the screen.",
   plHelpSource:"Positions are computed on the device from orbital elements (tropical zodiac, geocentric, mean lunar node), to within a few arc minutes of the Swiss Ephemeris. Time is UTC from the Date header.",
   planetsHint:"A geocentric view as on a horoscope wheel - the zodiac, the planets by ecliptic longitude, the ascendant for your location and the aspects. Computed on the device itself, nothing is downloaded. Tap a planet for its sign, distance, daily motion and orbital data.",
