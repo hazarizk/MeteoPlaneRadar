@@ -155,6 +155,7 @@ Forecast.*            Open-Meteo: předpověď, slunce, ovzduší
 Energy.*              spotová cena elektřiny a mix výroby ČR
 Astro.*               polohy planet z dráhových elementů (bez sítě)
 ScreenPlanets.*       obrazovka Planety: zvěrokruh, planety, ascendent, aspekty
+AstroGlyphs.h         symboly planet a znamení (generuje tools/astro_glyphs.py)
 RainViewer.*          dlaždicový radar
 Screen*.{h,cpp}       jednotlivé obrazovky
 ```

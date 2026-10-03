@@ -7,6 +7,7 @@
 // =============================================================================
 #include "ScreenPlanets.h"
 #include "Astro.h"
+#include "AstroGlyphs.h"
 #include "Settings.h"
 #include "Outside.h"
 #include "Layout.h"
@@ -36,7 +37,7 @@
 #define R_PLANET  128
 #define R_STEP     26
 #define R_LEVELS    3
-#define PLANET_R   11       // disc radius
+#define PLANET_R   12       // half the glyph box (24 px glyphs, AstroGlyphs.h)
 #define MIN_SEP_DEG 12.0f   // closer than this at the same radius = stack
 
 // Aspect lines run between points on this inner circle; the middle inside it
@@ -84,17 +85,36 @@ static const uint16_t C_ELEM_TEXT[4] = { 0xFBCB, 0x7F2F, 0xFF2F, 0x7DBF };
 #define C_AXIS       0x4208
 #define C_EARTH      0x3DBC
 
-// A quarter of the brightness, same hue: the fill of a body below the horizon.
+// Under half the brightness, same hue: a body below the horizon. Dim enough
+// that the eye sorts the wheel into "up" and "down" at a glance, bright
+// enough that the symbol can still be read and tapped.
 static inline uint16_t dim565(uint16_t c) {
-  return (uint16_t)((((c >> 11) & 0x1F) >> 2) << 11 | (((c >> 5) & 0x3F) >> 2) << 5 | ((c & 0x1F) >> 2));
+  const int r = ((c >> 11) & 0x1F) * 2 / 5, g = ((c >> 5) & 0x3F) * 2 / 5, b = (c & 0x1F) * 2 / 5;
+  return (uint16_t)((r << 11) | (g << 5) | b);
 }
 
-// --- Short labels -----------------------------------------------------------
-// Two letters on the disc, three in the ring. Derived from the names in
-// Lang.h (S_P_* / S_Z_*), kept here because they are abbreviations the
-// browser never sees, not sentences.
-static const char* const P_SHORT_CZ[AB_COUNT] = { "Sl", "Ms", "Mk", "Ve", "Ma", "Ju", "Sa", "Ur", "Ne", "Pl", "Uz" };
-static const char* const P_SHORT_EN[AB_COUNT] = { "Su", "Mo", "Me", "Ve", "Ma", "Ju", "Sa", "Ur", "Ne", "Pl", "No" };
+// A glyph from AstroGlyphs.h, centred on (cx, cy), lit pixels in col. Drawn
+// as horizontal runs rather than single pixels; a glyph is a few dozen runs.
+static void drawGlyph(int cx, int cy, const AstroGlyph& g, uint16_t col) {
+  const int x0 = cx - g.w / 2, y0 = cy - g.h / 2;
+  for (int y = 0; y < g.h; y++) {
+    const char* r = g.rows[y];
+    int x = 0;
+    while (x < g.w) {
+      if (r[x] != '#') { x++; continue; }
+      int x1 = x;
+      while (x1 < g.w && r[x1] == '#') x1++;
+      gfx->drawFastHLine(x0 + x, y0 + y, x1 - x, col);
+      x = x1;
+    }
+  }
+}
+
+// --- Short sign labels ------------------------------------------------------
+// Three letters, for the one place the wheel spells a sign out in text (the
+// ascendant line in the middle). Derived from the names in Lang.h (S_Z_*),
+// kept here because they are abbreviations the browser never sees. The
+// wheel itself uses the glyphs from AstroGlyphs.h, as a chart does.
 static const char* const Z_SHORT_CZ[12] = { "Ber", "Byk", "Bli", "Rak", "Lev", "Pan", "Vah", "Sti", "Str", "Koz", "Vod", "Ryb" };
 static const char* const Z_SHORT_EN[12] = { "Ari", "Tau", "Gem", "Can", "Leo", "Vir", "Lib", "Sco", "Sag", "Cap", "Aqu", "Pis" };
 
@@ -111,7 +131,6 @@ static const char* compass(float azDeg) {
   const int i = ((int)lroundf(azDeg / 45.0f)) & 7;
   return Lang_Get() == LANG_EN ? COMPASS_EN[i] : COMPASS_CZ[i];
 }
-static const char* pShort(int b) { return intlNames() ? P_SHORT_EN[b] : P_SHORT_CZ[b]; }
 static const char* zShort(int s) { return intlNames() ? Z_SHORT_EN[s] : Z_SHORT_CZ[s]; }
 static const char* pName(int b)  { return intlNames() ? TE((StrId)(S_P_SUN + b))   : T((StrId)(S_P_SUN + b)); }
 static const char* zName(int s)  { return intlNames() ? TE((StrId)(S_Z_ARIES + s)) : T((StrId)(S_Z_ARIES + s)); }
@@ -229,20 +248,14 @@ static void drawZodiac() {
   gfx->drawCircle(CX, CY, R_ZIN, C_DKGRAY);
   gfx->drawCircle(CX, CY, R_ZOUT, C_DKGRAY);
 
-  // Sign names in the middle of each sector, size 2. The band is 36 px and a
-  // three-letter label 36 wide, so at the sides it is a tight fit - which is
-  // why the labels are three letters and not the full names.
+  // The sign glyphs in the middle of each sector, in the element's bright
+  // colour, the way every chart labels its wheel.
   for (int s = 0; s < 12; s++) {
     int x, y;
     polar(lonToRad(s * 30.0f + 15.0f), R_ZLABEL, &x, &y);
-    const char* lbl = zShort(s);
-    const int w = Layout_TextW(lbl, 2);
-    const int lx = x - w / 2, ly = y - 8;
-    if (!Layout_Claim(lx - 1, ly - 1, w + 2, LY_CHAR_H(2) + 2)) continue;
-    gfx->setTextSize(2);
-    gfx->setTextColor(C_ELEM_TEXT[s % 4]);
-    gfx->setCursor(lx, ly);
-    gfx->print(lbl);
+    const AstroGlyph& g = SIGN_GLYPHS[s];
+    if (!Layout_Claim(x - g.w / 2, y - g.h / 2, g.w, g.h)) continue;
+    drawGlyph(x, y, g, C_ELEM_TEXT[s % 4]);
   }
 }
 
@@ -352,30 +365,27 @@ static void drawPlanets() {
     polar(a, (float)r, &x, &y);
     s_px[i] = (int16_t)x; s_py[i] = (int16_t)y;
 
-    // Below the horizon at the device's location the disc is hollow: a dark
-    // fill with the colour kept for the rim and the letters. One glance at
-    // the wheel then says what is actually up tonight. The node is a point,
-    // not a body, and is drawn hollow always.
+    // The symbol itself, as on a chart: no disc, just the glyph in the body's
+    // colour. Below the horizon at the device's location it is drawn dim, so
+    // one glance at the wheel says what is actually up tonight. The pointer
+    // on the ring follows suit.
     const bool up = p.altDeg >= 0.0f;
-    const bool hollow = (i == AB_NODE) || !up;
-    if (hollow) {
-      gfx->fillCircle(x, y, PLANET_R, dim565(col));
-      gfx->drawCircle(x, y, PLANET_R, col);
-      gfx->drawCircle(x, y, PLANET_R - 1, col);
-    } else {
-      gfx->fillCircle(x, y, PLANET_R, col);
+    const uint16_t drawCol = up ? col : dim565(col);
+    drawGlyph(x, y, PLANET_GLYPHS[i], drawCol);
+    if (!up) {
+      gfx->drawLine(CX + (int)((R_ZIN - 1) * c), CY - (int)((R_ZIN - 1) * sn),
+                    CX + (int)((R_ZIN - 9) * c), CY - (int)((R_ZIN - 9) * sn), drawCol);
     }
+
+    // Retrograde: a small red R at the lower right, the notation a printed
+    // chart uses.
     if (p.retro) {
-      gfx->drawCircle(x, y, PLANET_R + 2, C_RED);
-      gfx->drawCircle(x, y, PLANET_R + 3, C_RED);
+      gfx->setTextSize(1);
+      gfx->setTextColor(C_RED);
+      gfx->setCursor(x + PLANET_R + 1, y + PLANET_R - 7);
+      gfx->print("R");
     }
     if (i == s_sel) gfx->drawCircle(x, y, PLANET_R + 5, C_WHITE);
-
-    const char* lbl = pShort(i);
-    gfx->setTextSize(1);
-    gfx->setTextColor(hollow ? col : C_BLACK);
-    gfx->setCursor(x - Layout_TextW(lbl, 1) / 2, y - 3);
-    gfx->print(lbl);
   }
   s_placed = true;
 }
@@ -390,17 +400,27 @@ static void drawCentre() {
 
   // The Moon's phase under it: lit fraction and which way it is going. On a
   // black backing, because the aspect lines cross the middle underneath.
-  gfx->fillRect(CX - 40, CY + 1, 80, 40, C_BLACK);
+  gfx->fillRect(CX - 40, CY - 2, 80, 48, C_BLACK);
   char buf[24];
-  snprintf(buf, sizeof(buf), "%s %d%%", pShort(AB_MOON), (int)lroundf(s_chart.moonIllum * 100.0f));
-  UI_TextCentered(buf, CY + 4, C_BODY[AB_MOON], 1);
-  UI_TextCentered(s_chart.moonWaxing ? T(S_WAXING) : T(S_WANING), CY + 16, C_GRAY, 1);
+  snprintf(buf, sizeof(buf), "%d%%", (int)lroundf(s_chart.moonIllum * 100.0f));
+  {
+    // The Moon glyph and the percentage side by side, centred as a pair.
+    const int tw = Layout_TextW(buf, 1);
+    const int total = PLANET_GLYPHS[AB_MOON].w + 4 + tw;
+    const int x0 = CX - total / 2;
+    drawGlyph(x0 + PLANET_GLYPHS[AB_MOON].w / 2, CY + 10, PLANET_GLYPHS[AB_MOON], C_BODY[AB_MOON]);
+    gfx->setTextSize(1);
+    gfx->setTextColor(C_BODY[AB_MOON]);
+    gfx->setCursor(x0 + PLANET_GLYPHS[AB_MOON].w + 4, CY + 6);
+    gfx->print(buf);
+  }
+  UI_TextCentered(s_chart.moonWaxing ? T(S_WAXING) : T(S_WANING), CY + 22, C_GRAY, 1);
 
   // And the ascendant in words, since in the fixed orientation it is not
   // obviously anywhere in particular.
   snprintf(buf, sizeof(buf), "ASC %s %d\xF8", zShort(Astro_SignOf(s_chart.ascLon)),
            (int)Astro_DegInSign(s_chart.ascLon));
-  UI_TextCentered(buf, CY + 30, C_WHITE, 1);
+  UI_TextCentered(buf, CY + 35, C_WHITE, 1);
 }
 
 // --- Drawing: the detail panel ---------------------------------------------
