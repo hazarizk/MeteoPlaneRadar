@@ -41,8 +41,15 @@
 #define MIN_SEP_DEG 12.0f   // closer than this at the same radius = stack
 
 // Aspect lines run between points on this inner circle; the middle inside it
-// is for the Earth and the Moon's phase.
-#define R_ASPECT  58
+// is for the Moon's phase and the ascendant. 70 rather than something
+// smaller: at 58 the few lines crossed in a knot the size of a fingernail.
+#define R_ASPECT  70
+
+// Only aspects this close to exact are drawn. Textbook orbs (six to eight
+// degrees) put fifteen lines in the middle of a one-centimetre circle on
+// this panel and nobody could tell what was what; two degrees leaves the
+// handful that an astrologer would actually call tight.
+#define ASPECT_ORB_DEG 2.0f
 
 // How long the detail panel stays up by itself. Longer than the price
 // screen's hour readout: there are seven lines to read.
@@ -298,10 +305,9 @@ static void drawAxes() {
 // --- Drawing: aspects -------------------------------------------------------
 // The five Ptolemaic aspects. Conjunctions are not drawn - two planets within
 // orb are stacked next to each other already, which says it louder than a
-// line of zero length could. Orb: eight degrees when the Sun or the Moon is
-// involved, six otherwise, which is the common textbook choice.
-static uint16_t aspectColor(float sep, bool luminary) {
-  const float orb = luminary ? 8.0f : 6.0f;
+// line of zero length could. The orb is ASPECT_ORB_DEG for everything.
+static uint16_t aspectColor(float sep) {
+  const float orb = ASPECT_ORB_DEG;
   if (fabsf(sep - 180.0f) <= orb) return C_OPPOSITION;
   if (fabsf(sep - 120.0f) <= orb) return C_TRINE;
   if (fabsf(sep -  90.0f) <= orb) return C_SQUARE;
@@ -315,7 +321,7 @@ static void drawAspects() {
   for (int i = AB_SUN; i <= AB_PLUTO; i++) {
     for (int j = i + 1; j <= AB_PLUTO; j++) {
       const float sep = fabsf(Astro_DeltaDeg(s_chart.body[i].lon, s_chart.body[j].lon));
-      const uint16_t col = aspectColor(sep, i == AB_SUN || i == AB_MOON || j == AB_SUN || j == AB_MOON);
+      const uint16_t col = aspectColor(sep);
       if (!col) continue;
       int x0, y0, x1, y1;
       polar(lonToRad(s_chart.body[i].lon), R_ASPECT, &x0, &y0);
@@ -391,36 +397,45 @@ static void drawPlanets() {
 }
 
 // --- Drawing: the middle ----------------------------------------------------
-static void drawCentre() {
-  // The Earth: a disc with a cross, the astronomical symbol, which is also
-  // the one thing on this screen that is not moving.
-  gfx->fillCircle(CX, CY - 14, 9, C_EARTH);
-  gfx->drawLine(CX - 9, CY - 14, CX + 9, CY - 14, C_BLACK);
-  gfx->drawLine(CX, CY - 23, CX, CY - 5, C_BLACK);
-
-  // The Moon's phase under it: lit fraction and which way it is going. On a
-  // black backing, because the aspect lines cross the middle underneath.
-  gfx->fillRect(CX - 40, CY - 2, 80, 48, C_BLACK);
-  char buf[24];
-  snprintf(buf, sizeof(buf), "%d%%", (int)lroundf(s_chart.moonIllum * 100.0f));
-  {
-    // The Moon glyph and the percentage side by side, centred as a pair.
-    const int tw = Layout_TextW(buf, 1);
-    const int total = PLANET_GLYPHS[AB_MOON].w + 4 + tw;
-    const int x0 = CX - total / 2;
-    drawGlyph(x0 + PLANET_GLYPHS[AB_MOON].w / 2, CY + 10, PLANET_GLYPHS[AB_MOON], C_BODY[AB_MOON]);
-    gfx->setTextSize(1);
-    gfx->setTextColor(C_BODY[AB_MOON]);
-    gfx->setCursor(x0 + PLANET_GLYPHS[AB_MOON].w + 4, CY + 6);
-    gfx->print(buf);
+// The Moon as it looks tonight: a disc with the lit part drawn in. The
+// terminator is the ellipse x = w * cos(elongation) on every row, which for
+// the lit fraction f is w * (1 - 2f). Waxing, the light is on the right, as
+// it is in the evening sky from the northern hemisphere; the user's latitude
+// decides which, since south of the equator the Moon hangs the other way up.
+#define MOON_R 18
+static void drawMoonDisc(int cx, int cy) {
+  const float f = s_chart.moonIllum;
+  bool litRight = s_chart.moonWaxing;
+  if (Settings_Lat() < 0) litRight = !litRight;
+  for (int dy = -MOON_R; dy <= MOON_R; dy++) {
+    const int w = (int)sqrtf((float)(MOON_R * MOON_R - dy * dy));
+    const int xt = (int)lroundf(w * (1.0f - 2.0f * f));      // terminator, measured from the lit limb
+    gfx->drawFastHLine(cx - w, cy + dy, 2 * w + 1, 0x18E3);  // the dark side
+    int x0, x1;
+    if (litRight) { x0 = cx + xt;  x1 = cx + w; }
+    else          { x0 = cx - w;   x1 = cx - xt; }
+    if (x1 >= x0) gfx->drawFastHLine(x0, cy + dy, x1 - x0 + 1, C_BODY[AB_MOON]);
   }
-  UI_TextCentered(s_chart.moonWaxing ? T(S_WAXING) : T(S_WANING), CY + 22, C_GRAY, 1);
+  gfx->drawCircle(cx, cy, MOON_R, C_GRAY);
+}
 
-  // And the ascendant in words, since in the fixed orientation it is not
-  // obviously anywhere in particular.
+static void drawCentre() {
+  // The Moon in the middle, its phase as a picture, and under it the word
+  // for which way the phase is going and the ascendant in words - the
+  // latter because in the fixed orientation it is not obviously anywhere in
+  // particular. Text sits on black backings because the aspect lines cross
+  // the middle underneath; the Moon covers them by itself.
+  drawMoonDisc(CX, CY - 12);
+
+  char buf[24];
+  const char* dir = s_chart.moonWaxing ? T(S_WAXING) : T(S_WANING);
+  gfx->fillRect(CX - Layout_TextW(dir, 1) / 2 - 3, CY + 12, Layout_TextW(dir, 1) + 6, 12, C_BLACK);
+  UI_TextCentered(dir, CY + 14, C_GRAY, 1);
+
   snprintf(buf, sizeof(buf), "ASC %s %d\xF8", zShort(Astro_SignOf(s_chart.ascLon)),
            (int)Astro_DegInSign(s_chart.ascLon));
-  UI_TextCentered(buf, CY + 35, C_WHITE, 1);
+  gfx->fillRect(CX - Layout_TextW(buf, 1) / 2 - 3, CY + 26, Layout_TextW(buf, 1) + 6, 12, C_BLACK);
+  UI_TextCentered(buf, CY + 28, C_WHITE, 1);
 }
 
 // --- Drawing: the detail panel ---------------------------------------------

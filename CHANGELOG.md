@@ -25,10 +25,12 @@ pohromadě v `MeteoPlaneRadar/Config.h`.
   nemá, proto jsou v `AstroGlyphs.h` jako bitmapy generované skriptem
   `tools/astro_glyphs.py` (čitelné jako ASCII art, jdou upravit i ručně).
 
-  Pro polohu zařízení se kreslí osa ascendent–descendent a MC–IC, uprostřed
-  je Země, fáze Měsíce (osvětlení, dorůstá/couvá) a ascendent slovy. Mezi
-  planetami jsou barevné aspekty: opozice, kvadratura, trigon, sextil
-  (orbis 6°, u Slunce a Měsíce 8°). Klepnutí doprostřed je schová.
+  Pro polohu zařízení se kreslí osa ascendent–descendent a MC–IC. Uprostřed
+  je Měsíc nakreslený tak, jak dnes vypadá (osvětlená část kotouče, na jižní
+  polokouli zrcadlově), pod ním dorůstá/couvá a ascendent slovy. Mezi
+  planetami jsou barevné aspekty: opozice červeně, kvadratura oranžově,
+  trigon modře, sextil zeleně, jen ty těsné s orbisem do 2°, aby se čáry
+  daly přečíst. Klepnutí doprostřed je schová.
 
   Poloha zařízení (ta samá, co má radar) rozhoduje i o tom, co je právě nad
   obzorem: planety pod obzorem jsou na kole ztlumené, planety nad ním svítí

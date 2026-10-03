@@ -17,9 +17,10 @@
 //      with a pointer to their exact degree; a red R next to one means it is
 //      retrograde; a dim one is below the horizon at the device's location
 //    - the ascendant/descendant and MC/IC axes for the device's location
-//    - aspect lines between planets (conjunction is a stacking, the others
-//      are drawn), colour by aspect; tap the middle to hide them
-//    - the Moon's phase in the middle
+//    - aspect lines between planets within two degrees of exact
+//      (conjunction is a stacking, the others are drawn), colour by aspect;
+//      tap the middle to hide them
+//    - the Moon in the middle, drawn with its phase as it looks tonight
 //
 //  Controls:
 //    tap a planet       - its detail: sign and degree, altitude and compass
