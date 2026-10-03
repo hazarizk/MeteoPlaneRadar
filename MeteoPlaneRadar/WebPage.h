@@ -60,6 +60,8 @@ button:disabled{cursor:default}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
 .chk{display:flex;align-items:center;gap:8px}
 .hint{color:var(--mut);font-size:13px;margin:8px 0 0}
+details.help{margin-top:10px}details.help summary{cursor:pointer;color:var(--mut);font-size:13px}
+details.help ul{padding-left:18px;margin:6px 0 0}details.help li{margin:4px 0}
 .bar{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);
  padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:flex;gap:12px;align-items:center;z-index:6}
 #msg{font-size:14px}
@@ -154,13 +156,6 @@ td:first-child{color:var(--mut);width:50%}
       <label class="chk"><input type="checkbox" id="sMix"><span data-i18n="scrMix">Výroba ČR</span></label>
       <label class="chk"><input type="checkbox" id="sPlanets"><span data-i18n="scrPlanets">Planety</span></label>
     </div>
-    <p class="hint" data-i18n="planetsHint">Planety: geocentrický pohled jako v horoskopu — zvěrokruh, planety podle délky na ekliptice, ascendent pro vaši polohu a aspekty. Počítá se přímo v zařízení, žádná data se nestahují. Klepnutím na planetu se zobrazí znamení, vzdálenost, denní pohyb a oběžné údaje.</p>
-    <div class="row"><label data-i18n="planetNames">Názvy na obrazovce Planety</label>
-      <select id="planetIntl">
-        <option value="0" data-i18n="planetNamesLang">podle jazyka rozhraní</option>
-        <option value="1" data-i18n="planetNamesIntl">mezinárodní (Aries, Taurus, Jupiter…)</option>
-      </select></div>
-    <p class="hint" data-i18n="planetNamesHint">Ukládá se hned, bez restartu. Mezinárodní názvy jsou latinské, tedy stejné jako anglické.</p>
     <p class="hint" data-i18n="scrHint">Vypnuté obrazovky se přeskakují. Nastavení je dostupné vždy.</p>
     <p class="hint" data-i18n="restartHint">Změna obrazovek, zdroje radaru nebo polohy potřebuje restart, takže se ukládá až tlačítkem dole.</p>
     <div class="row"><label data-i18n="autoRotate">Automatické střídání (sekundy, 0 = vypnuto)</label>
@@ -178,6 +173,31 @@ td:first-child{color:var(--mut);width:50%}
     <p class="hint" data-i18n="radarHint">Mimo ČR nemá ČHMÚ data a obrazovka zůstane prázdná — použijte RainViewer.</p>
     <div class="row"><label class="chk"><input type="checkbox" id="meteoLegend"><span data-i18n="mtLegend">Zobrazit legendu (dBZ / mm/h)</span></label></div>
     <p class="hint" data-i18n="mtLegendHint">Legenda zabírá levý okraj mapy. Když stupnici znáte, dá se skrýt a je vidět víc území.</p>
+  </div>
+
+  <div class="card">
+    <h2 data-i18n="scrPlanets">Planety</h2>
+    <p class="hint" data-i18n="planetsHint">Geocentrický pohled jako v horoskopu — zvěrokruh, planety podle délky na ekliptice, ascendent pro vaši polohu a aspekty. Počítá se přímo v zařízení, žádná data se nestahují. Klepnutím na planetu se zobrazí znamení, vzdálenost, denní pohyb a oběžné údaje.</p>
+    <div class="row"><label data-i18n="planetNames">Názvy na obrazovce Planety</label>
+      <select id="planetIntl">
+        <option value="0" data-i18n="planetNamesLang">podle jazyka rozhraní</option>
+        <option value="1" data-i18n="planetNamesIntl">mezinárodní (Aries, Taurus, Jupiter…)</option>
+      </select></div>
+    <p class="hint" data-i18n="planetNamesHint">Ukládá se hned, bez restartu. Mezinárodní názvy jsou latinské, tedy stejné jako anglické.</p>
+    <details class="help">
+      <summary data-i18n="plHelpTitle">Co je na obrazovce a jak se čte</summary>
+      <ul class="hint">
+        <li data-i18n="plHelpZodiac">Zvěrokruh: dvanáct znamení po 30° v barvách živlů — červená oheň, zelená země, žlutá vzduch, modrá voda. Běží proti směru hodinových ručiček jako v horoskopu.</li>
+        <li data-i18n="plHelpPlanets">Planety: symbol v barvě planety na své ekliptikální délce; čárka na vnitřním okraji prstence ukazuje přesný stupeň. Planety blízko sebe (konjunkce) se řadí pod sebe, nikdy přes sebe.</li>
+        <li data-i18n="plHelpHorizon">Ztlumená planeta je právě pod obzorem ve vaší poloze, planeta v plné barvě je nad ním. Čára ASC–DSC je obzor.</li>
+        <li data-i18n="plHelpRetro">Červené R u planety: retrográdní pohyb, planeta zdánlivě couvá zvěrokruhem.</li>
+        <li data-i18n="plHelpAxes">Šipky ASC a MC: ascendent (stupeň, který právě vychází na východě) a střed nebe (stupeň na jižním poledníku). Počítají se z vaší polohy a času.</li>
+        <li data-i18n="plHelpAspects">Barevné čáry uprostřed jsou aspekty, jen těsné do 2° od přesného úhlu: červená opozice (180°), oranžová kvadratura (90°), modrá trigon (120°), zelená sextil (60°). Konjunkce se nekreslí, je vidět jako planety u sebe. Klepnutí doprostřed čáry schová a zase ukáže.</li>
+        <li data-i18n="plHelpMoon">Uprostřed je Měsíc s dnešní fází (osvětlená část kotouče), pod ním dorůstá/couvá a ascendent slovy.</li>
+        <li data-i18n="plHelpControls">Ovládání: klepnutí na planetu otevře detail (znamení a stupeň, obloha, vzdálenost, denní pohyb, oběh, vzdálenost od Slunce, rychlost, elongace; u Měsíce osvětlení). Přejetí prstem otočí kolo: ascendent vlevo, nebo 0° Berana vlevo napevno. Dlouhý stisk přepne obrazovku.</li>
+        <li data-i18n="plHelpSource">Polohy se počítají v zařízení z dráhových elementů (tropický zodiak, geocentricky, střední měsíční uzel), s přesností na několik úhlových minut proti Swiss Ephemeris. Čas je UTC z hlavičky Date.</li>
+      </ul>
+    </details>
   </div>
 </section>
 
@@ -337,7 +357,17 @@ const D={
   planetNames:"Názvy na obrazovce Planety",planetNamesLang:"podle jazyka rozhraní",
   planetNamesIntl:"mezinárodní (Aries, Taurus, Jupiter…)",
   planetNamesHint:"Ukládá se hned, bez restartu. Mezinárodní názvy jsou latinské, tedy stejné jako anglické.",
-  planetsHint:"Planety: geocentrický pohled jako v horoskopu — zvěrokruh, planety podle délky na ekliptice, ascendent pro vaši polohu a aspekty. Počítá se přímo v zařízení, žádná data se nestahují. Klepnutím na planetu se zobrazí znamení, vzdálenost, denní pohyb a oběžné údaje.",
+  plHelpTitle:"Co je na obrazovce a jak se čte",
+  plHelpZodiac:"Zvěrokruh: dvanáct znamení po 30° v barvách živlů — červená oheň, zelená země, žlutá vzduch, modrá voda. Běží proti směru hodinových ručiček jako v horoskopu.",
+  plHelpPlanets:"Planety: symbol v barvě planety na své ekliptikální délce; čárka na vnitřním okraji prstence ukazuje přesný stupeň. Planety blízko sebe (konjunkce) se řadí pod sebe, nikdy přes sebe.",
+  plHelpHorizon:"Ztlumená planeta je právě pod obzorem ve vaší poloze, planeta v plné barvě je nad ním. Čára ASC–DSC je obzor.",
+  plHelpRetro:"Červené R u planety: retrográdní pohyb, planeta zdánlivě couvá zvěrokruhem.",
+  plHelpAxes:"Šipky ASC a MC: ascendent (stupeň, který právě vychází na východě) a střed nebe (stupeň na jižním poledníku). Počítají se z vaší polohy a času.",
+  plHelpAspects:"Barevné čáry uprostřed jsou aspekty, jen těsné do 2° od přesného úhlu: červená opozice (180°), oranžová kvadratura (90°), modrá trigon (120°), zelená sextil (60°). Konjunkce se nekreslí, je vidět jako planety u sebe. Klepnutí doprostřed čáry schová a zase ukáže.",
+  plHelpMoon:"Uprostřed je Měsíc s dnešní fází (osvětlená část kotouče), pod ním dorůstá/couvá a ascendent slovy.",
+  plHelpControls:"Ovládání: klepnutí na planetu otevře detail (znamení a stupeň, obloha, vzdálenost, denní pohyb, oběh, vzdálenost od Slunce, rychlost, elongace; u Měsíce osvětlení). Přejetí prstem otočí kolo: ascendent vlevo, nebo 0° Berana vlevo napevno. Dlouhý stisk přepne obrazovku.",
+  plHelpSource:"Polohy se počítají v zařízení z dráhových elementů (tropický zodiak, geocentricky, střední měsíční uzel), s přesností na několik úhlových minut proti Swiss Ephemeris. Čas je UTC z hlavičky Date.",
+  planetsHint:"Geocentrický pohled jako v horoskopu — zvěrokruh, planety podle délky na ekliptice, ascendent pro vaši polohu a aspekty. Počítá se přímo v zařízení, žádná data se nestahují. Klepnutím na planetu se zobrazí znamení, vzdálenost, denní pohyb a oběžné údaje.",
   energyPrice:"Cena elektřiny",energyMix:"Výroba ČR",
   mixCountry:"Země",
   mixCountryHint:"Rozhraní energy-charts pokrývá Evropu. Mimo ni obrazovka data nemá a sama se vypne.",
@@ -393,7 +423,17 @@ const D={
   planetNames:"Names on the Planets screen",planetNamesLang:"interface language",
   planetNamesIntl:"international (Aries, Taurus, Jupiter…)",
   planetNamesHint:"Saved immediately, no restart. The international names are the Latin ones, which are the English ones.",
-  planetsHint:"Planets: a geocentric view as on a horoscope wheel - the zodiac, the planets by ecliptic longitude, the ascendant for your location and the aspects. Computed on the device itself, nothing is downloaded. Tap a planet for its sign, distance, daily motion and orbital data.",
+  plHelpTitle:"What is on the screen and how to read it",
+  plHelpZodiac:"Zodiac: twelve signs of 30° in the colours of the elements - red fire, green earth, yellow air, blue water. It runs anticlockwise, as on a horoscope wheel.",
+  plHelpPlanets:"Planets: the symbol in the planet's colour at its ecliptic longitude; the tick on the inner edge of the ring marks the exact degree. Planets close together (a conjunction) stack inwards, never on top of each other.",
+  plHelpHorizon:"A dimmed planet is below the horizon at your location right now, one in full colour is above it. The ASC-DSC line is the horizon.",
+  plHelpRetro:"A red R next to a planet: retrograde motion, the planet appears to move backwards through the zodiac.",
+  plHelpAxes:"The ASC and MC arrows: the ascendant (the degree rising in the east right now) and the midheaven (the degree on the southern meridian). Both come from your location and the time.",
+  plHelpAspects:"The coloured lines in the middle are aspects, only tight ones within 2° of exact: red opposition (180°), orange square (90°), blue trine (120°), green sextile (60°). Conjunctions are not drawn, they show as planets next to each other. Tap the middle to hide or show the lines.",
+  plHelpMoon:"In the middle is the Moon with tonight's phase (the lit part of the disc), under it waxing/waning and the ascendant in words.",
+  plHelpControls:"Controls: tap a planet for its detail (sign and degree, sky, distance, daily motion, orbit, distance from the Sun, speed, elongation; for the Moon the illumination). Swipe to turn the wheel: ascendant on the left, or 0° Aries on the left fixed. A long press changes the screen.",
+  plHelpSource:"Positions are computed on the device from orbital elements (tropical zodiac, geocentric, mean lunar node), to within a few arc minutes of the Swiss Ephemeris. Time is UTC from the Date header.",
+  planetsHint:"A geocentric view as on a horoscope wheel - the zodiac, the planets by ecliptic longitude, the ascendant for your location and the aspects. Computed on the device itself, nothing is downloaded. Tap a planet for its sign, distance, daily motion and orbital data.",
   energyPrice:"Electricity price",energyMix:"Czech generation",
   mixCountry:"Country",
   mixCountryHint:"The energy-charts API covers Europe. Outside it the screen has no data and switches itself off.",
