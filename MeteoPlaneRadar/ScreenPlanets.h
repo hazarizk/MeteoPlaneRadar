@@ -34,8 +34,8 @@
 //    swipe              - rotate the wheel: ascendant on the left (the way a
 //                         chart is drawn) or 0 Aries on the left (fixed)
 //    tap the wheel      - the time chips at the foot come up (and go away):
-//                         < NOW >, under them the step - hour, day, month,
-//                         year. An arrow steps the wheel in time; held, it
+//                         < NOW >, under them the step - five minutes, hour,
+//                         day, month, year. An arrow steps the wheel; held, it
 //                         runs. NOW brings it back. The chips hide by
 //                         themselves after a minute, the wheel comes back to
 //                         now after ten minutes alone or on leaving the

@@ -254,7 +254,7 @@ static bool    s_placed = false;
 // moment s_at; the chart is a function of that and nothing else.
 static bool          s_browsing = false;
 static time_t        s_at = 0;
-static uint8_t       s_unit = 1;            // 0 hour, 1 day, 2 month, 3 year
+static uint8_t       s_unit = 2;            // 0 five minutes, 1 hour, 2 day, 3 month, 4 year
 static unsigned long s_lastUse = 0;         // last touch or web request: the idle reset
 static bool          s_chips = false;       // the chips are up
 static unsigned long s_chipsAt = 0;
@@ -306,17 +306,19 @@ static void setAt(time_t t) {
   s_chartOk = false; s_dirty = true;
 }
 
-// One step of the current unit. Hours and days are plain seconds - the zone
-// is a fixed offset, so a day is always 86400 of them. Months and years go
-// through the calendar so the 21st stays the 21st, and the 31st becomes the
-// 30th where it has to rather than spilling into the next month.
+// One step of the current unit. Minutes, hours and days are plain seconds -
+// the zone is a fixed offset, so a day is always 86400 of them. Months and
+// years go through the calendar so the 21st stays the 21st, and the 31st
+// becomes the 30th where it has to rather than spilling into the next month.
+// Five minutes is the fine step: the ascendant moves a degree every four.
 static void stepTime(int dir) {
   time_t t = shownTime();
-  if (s_unit == 0)      t += (time_t)dir * 3600;
-  else if (s_unit == 1) t += (time_t)dir * 86400;
+  if (s_unit == 0)      t += (time_t)dir * 300;
+  else if (s_unit == 1) t += (time_t)dir * 3600;
+  else if (s_unit == 2) t += (time_t)dir * 86400;
   else {
     Civil c = toLocal(t);
-    if (s_unit == 2) {
+    if (s_unit == 3) {
       c.M += dir;
       if (c.M < 1)  { c.M = 12; c.Y--; }
       if (c.M > 12) { c.M = 1;  c.Y++; }
@@ -697,9 +699,10 @@ static void drawArrow(int cx, int cy, int dir, uint16_t col) {
 
 static const char* unitName() {
   switch (s_unit) {
-    case 0:  return T(S_U_HOUR);
-    case 2:  return T(S_U_MONTH);
-    case 3:  return T(S_U_YEAR);
+    case 0:  return T(S_U_MIN5);
+    case 1:  return T(S_U_HOUR);
+    case 3:  return T(S_U_MONTH);
+    case 4:  return T(S_U_YEAR);
     default: return T(S_U_DAY);
   }
 }
@@ -728,7 +731,7 @@ static void drawChips() {
     gfx->drawLine(dx, top - 2, dx + 4, top - 5, nowCol);
   }
 
-  // The step: tap to cycle hour, day, month, year.
+  // The step: tap to cycle five minutes, hour, day, month, year.
   chipRect(CX, UNIT_Y, UNIT_W, UNIT_H, C_GRAY);
   UI_TextCentered(unitName(), UNIT_Y - 8, C_WHITE, 2);
 }
@@ -913,7 +916,7 @@ bool ScreenPlanets_HandleTap(int x, int y) {
     case 1: stepTime(-1);                touched(); return true;
     case 3: stepTime(+1);                touched(); return true;
     case 2: ScreenPlanets_SetNow();      touched(); return true;
-    case 4: s_unit = (s_unit + 1) % 4;   touched(); return true;
+    case 4: s_unit = (s_unit + 1) % 5;   touched(); return true;
     default: break;
   }
 

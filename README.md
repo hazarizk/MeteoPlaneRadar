@@ -94,7 +94,7 @@ nastavení.
 | --- | --- |
 | **Přejetí prstem** | změna rozsahu (letadla, meteoradar) |
 | **Krátké klepnutí** | výběr letadla / přepnutí den–noc na hodinách / detail planety, jinde na kole šipky času |
-| **Držení šipky** (Planety) | čas na kole běží; klepnutí na krok pod šipkami střídá hodinu, den, měsíc, rok |
+| **Držení šipky** (Planety) | čas na kole běží; klepnutí na krok pod šipkami střídá 5 minut, hodinu, den, měsíc, rok |
 | **Dlouhý stisk vlevo / vpravo** | předchozí / následující obrazovka |
 | **BOOT při startu (~3 s)** | tovární reset |
 

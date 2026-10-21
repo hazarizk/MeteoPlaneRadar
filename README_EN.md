@@ -259,7 +259,7 @@ startup**, which is a factory reset and also erases WiFi.
 | --- | --- |
 | **Swipe** left/right | Change the range (aircraft, weather radar) |
 | **Short tap** | Select an aircraft; on the clock, toggle day/night; on the planets, open a planet's detail, or elsewhere on the wheel show the time arrows |
-| **Hold an arrow** (Planets) | The wheel runs through time; tap the step under the arrows to cycle hour, day, month, year |
+| **Hold an arrow** (Planets) | The wheel runs through time; tap the step under the arrows to cycle 5 minutes, hour, day, month, year |
 | **Long press, left half** | Previous screen |
 | **Long press, right half** | Next screen |
 | **Hold BOOT at startup (~3 s)** | Factory reset |

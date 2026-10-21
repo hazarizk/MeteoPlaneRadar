@@ -29,7 +29,8 @@ pohromadě v `MeteoPlaneRadar/Config.h`.
   tmavém, čtvercové) a skript spustit znovu - kód se nemění.
 
 - **Planety: cestování v čase.** Klepnutí kamkoli na kolo ukáže dole šipky
-  ◀ Teď ▶ a pod nimi krok (hodina, den, měsíc, rok; klepnutím se střídá).
+  ◀ Teď ▶ a pod nimi krok (5 minut, hodina, den, měsíc, rok; klepnutím se
+  střídá; pět minut je na ascendent, ten se otočí o stupeň každé čtyři).
   Šipka posune kolo o jeden krok, držená šipka čas rozběhne (dvanáct kroků
   za vteřinu, tedy rok po dnech za půl minuty, století po letech za osm
   vteřin) a planety se na kole hýbou, retrográdní smyčky včetně. Datum a čas

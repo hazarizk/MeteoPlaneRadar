@@ -115,6 +115,7 @@
   /* The time chips at the foot of the planets screen. "Ted" gets its caron  \
      drawn by hand on the panel; the unit names are the step of the arrows. */ \
   X(S_T_NOW,         "Ted",                "Teď",                "Now") \
+  X(S_U_MIN5,        "5 min",              "5 minut",            "5 min") \
   X(S_U_HOUR,        "hod.",               "hodina",             "hour") \
   X(S_U_DAY,         "den",                "den",                "day") \
   X(S_U_MONTH,       "mes.",               "měsíc",              "month") \
