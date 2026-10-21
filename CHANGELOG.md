@@ -47,6 +47,15 @@ pohromadě v `MeteoPlaneRadar/Config.h`.
   `POST /api/planets` `{"at":"1987-10-21T14:00"}` nebo `{"now":true}`. Čas
   je místní podle zóny zařízení. Rok mimo 1800–2100 web odmítne.
 
+  Místní čas minulosti je ten, který tehdy ukazovaly hodiny na zdi: nové
+  `TimeZone_OffsetAt()` čte tabulku `TzHistory.h` (generuje
+  `tools/tz_history.py` z databáze IANA, zóna Europe/Prague, 1800–2100) -
+  letní čas podle pravidel daného roku (1916–1918, 1940–1949, od 1979 po
+  evropských pravidlech), zima 1946/47 na GMT, pražský střední čas před
+  říjnem 1891. Platí pro zařízení ve střední Evropě (podle polohy a shody s
+  dnešním posunem), jinde se bere dnešní posun. Krok den jde kalendářem, aby
+  přes změnu času neuklouzl o hodinu.
+
 - **Planety.** Nová obrazovka: geocentrický pohled na sluneční soustavu tak,
   jak ho kreslí horoskop. Po obvodu zvěrokruh s dvanácti znameními v barvách
   živlů (oheň, země, vzduch, voda), s klasickými glyfy a stupňovou stupnicí,

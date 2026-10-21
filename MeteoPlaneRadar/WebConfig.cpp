@@ -234,7 +234,8 @@ static void handleRange() {
 }
 
 // The planets wheel at a moment: {"at":"1987-10-21T14:00"} in the device's
-// local time (what the browser's date field produces), or {"now":true}. Years
+// local time of that day (what the browser's date field produces), or
+// {"now":true}. Years
 // outside 1800-2100 are refused rather than clamped - the orbital elements
 // are not valid there, so there would be nothing true to draw.
 static void handlePlanets() {
@@ -257,7 +258,9 @@ static void handlePlanets() {
     s_srv.send(400, "application/json", "{\"error\":\"range\"}");
     return;
   }
-  s_reqPlanetsAt   = TimeUtil_UtcToEpoch(Y, M, D, h, mi, 0) - TimeZone_Offset();
+  // Wall-clock time of the day in question - summer time and all, as the
+  // clock on the wall read then (TimeZone_LocalToUtc knows the history).
+  s_reqPlanetsAt   = TimeZone_LocalToUtc(TimeUtil_UtcToEpoch(Y, M, D, h, mi, 0));
   s_reqPlanetsKind = 1;
   s_srv.send(200, "application/json", "{\"ok\":true}");
 }

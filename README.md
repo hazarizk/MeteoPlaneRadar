@@ -157,6 +157,7 @@ Energy.*              spotová cena elektřiny a mix výroby ČR
 Astro.*               polohy planet z dráhových elementů (bez sítě)
 ScreenPlanets.*       obrazovka Planety: zvěrokruh, planety, ascendent, aspekty
 AstroGlyphs.h         symboly planet a znamení, vyhlazené (generuje tools/astro_glyphs.py, nebo z PNG v tools/glyphs/)
+TzHistory.h           změny času ve střední Evropě 1800–2100 (generuje tools/tz_history.py)
 RainViewer.*          dlaždicový radar
 Screen*.{h,cpp}       jednotlivé obrazovky
 ```

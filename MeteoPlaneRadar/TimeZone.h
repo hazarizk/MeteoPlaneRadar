@@ -53,3 +53,19 @@ bool TimeZone_FromNetwork();
 
 // The POSIX string currently in TZ, for the status page and the serial log.
 const char* TimeZone_Text();
+
+// --- Any other day ----------------------------------------------------------
+// The offset that was, or will be, in force at a UTC instant - for the planets
+// screen, which draws the sky for any day between 1800 and 2100. In Central
+// European Time the answer comes from TzHistory.h, the real history of the
+// clock in Prague: summer time under the rules of its own year (1916-1918,
+// 1940-1949, 1979 on), the GMT winter of 1946/47, Prague mean time before
+// October 1891. Anywhere else there is no history to hand, and the offset in
+// force now is used throughout.
+int TimeZone_OffsetAt(time_t utc);
+
+// The inverse: a wall-clock reading, given as the epoch of its own fields (as
+// if they were UTC), to the UTC instant it names. In the hour that comes twice
+// at the autumn change the earlier, summer-time reading wins; in the hour that
+// is skipped in spring the result lands an hour later on the wall.
+time_t TimeZone_LocalToUtc(time_t localAsUtc);

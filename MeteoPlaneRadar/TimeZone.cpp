@@ -5,6 +5,8 @@
 //  Author:  Petr / chiptron.cz   (vyvoj / development: chiptron.cz)
 // =============================================================================
 #include "TimeZone.h"
+#include "TzHistory.h"
+#include "Settings.h"
 #include "Config.h"
 
 #include <time.h>
@@ -58,6 +60,50 @@ int TimeZone_Offset() {
        + (lt.tm_hour - gt.tm_hour) * 3600
        + (lt.tm_min  - gt.tm_min)  * 60
        + (lt.tm_sec  - gt.tm_sec);
+}
+
+// --- Any other day ----------------------------------------------------------
+// The last change at or before utc, by binary search over TzHistory.h.
+static int historyOffset(time_t utc) {
+  int lo = 0, hi = TZ_HISTORY_N - 1;
+  while (lo < hi) {
+    const int mid = (lo + hi + 1) / 2;
+    if (TZ_HISTORY[mid].at <= (int64_t)utc) lo = mid; else hi = mid - 1;
+  }
+  return TZ_HISTORY[lo].off;
+}
+
+// Does the history describe where the device stands? It is Prague's. The
+// modern EU rule is the same from Madrid to Warsaw, and the older history is
+// shared with the neighbours closely enough (Vienna and Bratislava had most of
+// it), so it serves any device in Central European Time: in Europe by its
+// coordinates, and agreeing with the offset that is in force right now. A
+// device in New York, or in Lisbon, gets the plain current offset instead.
+static bool historyApplies() {
+  const double lat = Settings_Lat(), lon = Settings_Lon();
+  if (lat < 34.0 || lat > 72.0 || lon < -10.0 || lon > 32.0) return false;
+  return historyOffset(time(nullptr)) == TimeZone_Offset();
+}
+
+int TimeZone_OffsetAt(time_t utc) {
+  if (!historyApplies()) return TimeZone_Offset();
+  if ((int64_t)utc < TZ_HISTORY[0].at) return TZ_HISTORY[0].off;
+  return historyOffset(utc);
+}
+
+time_t TimeZone_LocalToUtc(time_t localAsUtc) {
+  // A change of the clock within a day of the reading gives two offsets to
+  // try; a reading is a valid UTC instant under an offset when that offset
+  // is the one in force at the instant it produces.
+  const int oBefore = TimeZone_OffsetAt(localAsUtc - 86400);
+  const int oAfter  = TimeZone_OffsetAt(localAsUtc + 86400);
+  const time_t uB = localAsUtc - oBefore, uA = localAsUtc - oAfter;
+  const bool vB = TimeZone_OffsetAt(uB) == oBefore;
+  const bool vA = TimeZone_OffsetAt(uA) == oAfter;
+  if (vB && vA) return uB < uA ? uB : uA;   // the hour that comes twice: the earlier one
+  if (vB) return uB;
+  if (vA) return uA;
+  return uB;                                 // the hour that is skipped: an hour later on the wall
 }
 
 void TimeZone_SetOffset(int seconds) {

@@ -264,9 +264,10 @@ static unsigned long s_holdPrev = 0;        // heldMs last seen, to spot a new t
 
 static time_t shownTime() { return s_browsing ? s_at : time(nullptr); }
 
-// Local civil time without the C library: localtime_r is fine for today, but
-// the wheel goes to 1800, and the firmware's TZ is a plain offset anyway.
-// Howard Hinnant's civil_from_days, the inverse of TimeUtil_DaysFromCivil.
+// Local civil time without the C library: localtime_r knows only the rule in
+// force today, but the wheel goes to 1800, and TimeZone_OffsetAt() knows what
+// the clock did in every year since. Howard Hinnant's civil_from_days, the
+// inverse of TimeUtil_DaysFromCivil.
 struct Civil { int Y, M, D, h, mi; };
 static void civilFromDays(long z, int* y, int* m, int* d) {
   z += 719468;
@@ -280,7 +281,7 @@ static void civilFromDays(long z, int* y, int* m, int* d) {
   *y = (int)(era * 400 + (long)yoe + (mm <= 2 ? 1 : 0)); *m = (int)mm; *d = (int)dd;
 }
 static Civil toLocal(time_t utc) {
-  const long long s = (long long)utc + TimeZone_Offset();
+  const long long s = (long long)utc + TimeZone_OffsetAt(utc);
   const long days = (long)((s >= 0 ? s : s - 86399) / 86400);
   const long rem  = (long)(s - (long long)days * 86400);
   Civil c;
@@ -289,7 +290,7 @@ static Civil toLocal(time_t utc) {
   return c;
 }
 static time_t fromLocal(const Civil& c) {
-  return TimeUtil_UtcToEpoch(c.Y, c.M, c.D, c.h, c.mi, 0) - TimeZone_Offset();
+  return TimeZone_LocalToUtc(TimeUtil_UtcToEpoch(c.Y, c.M, c.D, c.h, c.mi, 0));
 }
 static int daysInMonth(int y, int m) {
   static const uint8_t n[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
@@ -306,19 +307,24 @@ static void setAt(time_t t) {
   s_chartOk = false; s_dirty = true;
 }
 
-// One step of the current unit. Minutes, hours and days are plain seconds -
-// the zone is a fixed offset, so a day is always 86400 of them. Months and
-// years go through the calendar so the 21st stays the 21st, and the 31st
-// becomes the 30th where it has to rather than spilling into the next month.
-// Five minutes is the fine step: the ascendant moves a degree every four.
+// One step of the current unit. Minutes and hours are plain seconds. Days,
+// months and years go through the calendar, so the 21st stays the 21st and
+// 14:00 stays 14:00 across a change of the clock, and the 31st becomes the
+// 30th where it has to rather than spilling into the next month. Five
+// minutes is the fine step: the ascendant moves a degree every four.
 static void stepTime(int dir) {
   time_t t = shownTime();
   if (s_unit == 0)      t += (time_t)dir * 300;
   else if (s_unit == 1) t += (time_t)dir * 3600;
-  else if (s_unit == 2) t += (time_t)dir * 86400;
   else {
     Civil c = toLocal(t);
-    if (s_unit == 3) {
+    if (s_unit == 2) {
+      // A day in the calendar, not 86400 seconds: across the clock change
+      // the wall time must not slip by an hour. Days from civil handles the
+      // month end; the leap second nobody has.
+      const long days = TimeUtil_DaysFromCivil(c.Y, (unsigned)c.M, (unsigned)c.D) + dir;
+      civilFromDays(days, &c.Y, &c.M, &c.D);
+    } else if (s_unit == 3) {
       c.M += dir;
       if (c.M < 1)  { c.M = 12; c.Y--; }
       if (c.M > 12) { c.M = 1;  c.Y++; }
