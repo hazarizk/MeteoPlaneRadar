@@ -31,6 +31,17 @@
 //    tap elsewhere      - close the detail
 //    swipe              - rotate the wheel: ascendant on the left (the way a
 //                         chart is drawn) or 0 Aries on the left (fixed)
+//    tap the wheel      - the time chips at the foot come up (and go away):
+//                         < NOW >, under them the step - hour, day, month,
+//                         year. An arrow steps the wheel in time; held, it
+//                         runs. NOW brings it back. The chips hide by
+//                         themselves after a minute, the wheel comes back to
+//                         now after ten minutes alone or on leaving the
+//                         screen, so the display never stays parked in 1987.
+//
+//  Time travel reaches from 1800 to 2100 - the range the orbital elements in
+//  Astro.* are good for. The web page can set a moment outright (a birth
+//  chart is the obvious use); the chips are for wandering from there.
 //
 //  Project: MeteoPlaneRadar - live aircraft radar on a round touchscreen
 //  Author:  Petr / chiptron.cz   (vyvoj / development: chiptron.cz)
@@ -38,6 +49,7 @@
 // =============================================================================
 #pragma once
 #include <Arduino.h>
+#include <time.h>
 
 void ScreenPlanets_Enter();
 void ScreenPlanets_Draw();
@@ -56,3 +68,20 @@ void ScreenPlanets_RangeText(char* out, size_t cap);
 // cycling waits.
 bool ScreenPlanets_DetailOpen();
 void ScreenPlanets_CloseDetail();
+
+// --- Time travel ------------------------------------------------------------
+// "Browsing" is the wheel showing any moment but now. While it does, the
+// automatic cycling waits, like it does for an open detail.
+bool ScreenPlanets_Browsing();
+// Set the wheel to a UTC moment (clamped to 1800-2100) or back to now. From
+// the web; the chips on the glass do the same through HandleTap/HandleHold.
+void ScreenPlanets_SetTime(time_t utc);
+void ScreenPlanets_SetNow();
+// The moment shown, in the device's local time as "YYYY-MM-DDTHH:MM" for the
+// web page's date field - or "" when the wheel shows now.
+void ScreenPlanets_BrowseIso(char* out, size_t cap);
+// A finger resting on the glass, called every loop while it is down with the
+// current position and how long it has been there. On an arrow chip this runs
+// the time. True = the screen has taken the touch over: the release must not
+// be turned into a tap or a long press.
+bool ScreenPlanets_HandleHold(int x, int y, unsigned long heldMs);

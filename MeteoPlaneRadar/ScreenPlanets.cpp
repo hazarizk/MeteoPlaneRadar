@@ -15,6 +15,8 @@
 #include "UI.h"
 #include "Display_ST7701.h"
 #include "Config.h"
+#include "TimeZone.h"
+#include "TimeUtil.h"
 
 #include <time.h>
 #include <math.h>
@@ -60,6 +62,32 @@
 // moves on the screen between recomputes is the ascendant, one degree every
 // four minutes.
 #define RECOMPUTE_MS 60000UL
+
+// --- Time travel ------------------------------------------------------------
+// The orbital elements in Astro.* are Schlyter's: a few arc minutes over
+// 1900-2100, a degree for Pluto over 1800-2100, and drifting beyond that. On
+// a wheel where a degree is three pixels 1800-2100 is the honest range, so
+// the arrows stop there. UTC epochs; a 64-bit time_t (ESP32 core 3) reaches.
+#define T_MIN ((time_t)-5364662400LL)     // 1800-01-01 00:00 UTC
+#define T_MAX ((time_t) 4133980740LL)     // 2100-12-31 23:59 UTC
+static_assert(sizeof(time_t) >= 8, "time travel to 1800 needs a 64-bit time_t");
+
+#define CHIPS_HOLD_MS   60000UL   // the chips hide this long after the last touch
+#define BROWSE_IDLE_MS 600000UL   // ten minutes alone and the wheel is back at now
+#define HOLD_START_MS     500UL   // a finger on an arrow this long starts it running
+#define HOLD_STEP_MS       80UL   // ...and then it steps this often - the draw cap
+
+// The chips: < NOW > in a row over the foot of the ring, the step unit in a
+// smaller chip under them, in the sliver of glass below the ring that nothing
+// else uses. The row's ends sit well inside the chord of the circle there.
+#define CHIP_Y    430
+#define CHIP_H     28
+#define CHIP_ARW   44
+#define CHIP_NOW   76
+#define CHIP_DX    68             // centre of each arrow chip from CX
+#define UNIT_Y    458
+#define UNIT_H     20
+#define UNIT_W     72
 
 // --- Colours ----------------------------------------------------------------
 // The bodies. Chosen to be told apart at arm's length on black, and roughly
@@ -157,6 +185,108 @@ static unsigned long s_selAt = 0;
 static int16_t s_px[AB_COUNT], s_py[AB_COUNT];
 static bool    s_placed = false;
 
+// Time travel. The wheel shows now unless s_browsing, and then the absolute
+// moment s_at; the chart is a function of that and nothing else.
+static bool          s_browsing = false;
+static time_t        s_at = 0;
+static uint8_t       s_unit = 1;            // 0 hour, 1 day, 2 month, 3 year
+static unsigned long s_lastUse = 0;         // last touch or web request: the idle reset
+static bool          s_chips = false;       // the chips are up
+static unsigned long s_chipsAt = 0;
+static bool          s_dirty = false;       // changed outside Tick, wants a redraw
+static unsigned long s_holdNext = 0;        // next step of a held arrow
+static unsigned long s_holdPrev = 0;        // heldMs last seen, to spot a new touch
+
+static time_t shownTime() { return s_browsing ? s_at : time(nullptr); }
+
+// Local civil time without the C library: localtime_r is fine for today, but
+// the wheel goes to 1800, and the firmware's TZ is a plain offset anyway.
+// Howard Hinnant's civil_from_days, the inverse of TimeUtil_DaysFromCivil.
+struct Civil { int Y, M, D, h, mi; };
+static void civilFromDays(long z, int* y, int* m, int* d) {
+  z += 719468;
+  const long era = (z >= 0 ? z : z - 146096) / 146097;
+  const unsigned doe = (unsigned)(z - era * 146097);
+  const unsigned yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+  const unsigned doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+  const unsigned mp  = (5 * doy + 2) / 153;
+  const unsigned dd  = doy - (153 * mp + 2) / 5 + 1;
+  const unsigned mm  = mp < 10 ? mp + 3 : mp - 9;
+  *y = (int)(era * 400 + (long)yoe + (mm <= 2 ? 1 : 0)); *m = (int)mm; *d = (int)dd;
+}
+static Civil toLocal(time_t utc) {
+  const long long s = (long long)utc + TimeZone_Offset();
+  const long days = (long)((s >= 0 ? s : s - 86399) / 86400);
+  const long rem  = (long)(s - (long long)days * 86400);
+  Civil c;
+  civilFromDays(days, &c.Y, &c.M, &c.D);
+  c.h = (int)(rem / 3600); c.mi = (int)((rem % 3600) / 60);
+  return c;
+}
+static time_t fromLocal(const Civil& c) {
+  return TimeUtil_UtcToEpoch(c.Y, c.M, c.D, c.h, c.mi, 0) - TimeZone_Offset();
+}
+static int daysInMonth(int y, int m) {
+  static const uint8_t n[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+  if (m == 2 && ((y % 4 == 0 && y % 100 != 0) || y % 400 == 0)) return 29;
+  return n[m - 1];
+}
+
+static void touched() { s_lastUse = millis(); s_chipsAt = s_lastUse; }
+
+static void setAt(time_t t) {
+  if (t < T_MIN) t = T_MIN;
+  if (t > T_MAX) t = T_MAX;
+  s_at = t; s_browsing = true;
+  s_chartOk = false; s_dirty = true;
+}
+
+// One step of the current unit. Hours and days are plain seconds - the zone
+// is a fixed offset, so a day is always 86400 of them. Months and years go
+// through the calendar so the 21st stays the 21st, and the 31st becomes the
+// 30th where it has to rather than spilling into the next month.
+static void stepTime(int dir) {
+  time_t t = shownTime();
+  if (s_unit == 0)      t += (time_t)dir * 3600;
+  else if (s_unit == 1) t += (time_t)dir * 86400;
+  else {
+    Civil c = toLocal(t);
+    if (s_unit == 2) {
+      c.M += dir;
+      if (c.M < 1)  { c.M = 12; c.Y--; }
+      if (c.M > 12) { c.M = 1;  c.Y++; }
+    } else {
+      c.Y += dir;
+    }
+    const int dim = daysInMonth(c.Y, c.M);
+    if (c.D > dim) c.D = dim;
+    t = fromLocal(c);
+  }
+  setAt(t);
+}
+
+bool ScreenPlanets_Browsing() { return s_browsing; }
+
+void ScreenPlanets_SetTime(time_t utc) {
+  setAt(utc);
+  touched();
+  s_chips = true;             // show the way onwards from the moment just set
+}
+
+void ScreenPlanets_SetNow() {
+  s_browsing = false;
+  s_chartOk = false; s_dirty = true;
+  s_lastUse = millis();
+}
+
+void ScreenPlanets_BrowseIso(char* out, size_t cap) {
+  if (!out || !cap) return;
+  out[0] = '\0';
+  if (!s_browsing) return;
+  const Civil c = toLocal(s_at);
+  snprintf(out, cap, "%04d-%02d-%02dT%02d:%02d", c.Y, c.M, c.D, c.h, c.mi);
+}
+
 bool ScreenPlanets_DetailOpen() { return s_sel >= 0; }
 void ScreenPlanets_CloseDetail() { s_sel = -1; }
 
@@ -164,6 +294,8 @@ void ScreenPlanets_Enter() {
   s_sel = -1;
   s_chartOk = false;          // compute fresh for the time we are entered at
   s_placed = false;
+  s_browsing = false;         // a new visit starts at now
+  s_chips = false;
 }
 
 void ScreenPlanets_ChangeRange(int dir) {
@@ -177,18 +309,28 @@ void ScreenPlanets_RangeText(char* out, size_t cap) {
 }
 
 static void recompute() {
-  Astro_Compute(time(nullptr), Settings_Lat(), Settings_Lon(), &s_chart);
+  Astro_Compute(shownTime(), Settings_Lat(), Settings_Lon(), &s_chart);
   s_chartOk = true;
   s_chartAt = millis();
 }
 
 bool ScreenPlanets_Tick() {
-  bool want = false;
+  bool want = s_dirty;
+  s_dirty = false;
   const bool tv = Outside_TimeValid();
   if (tv != s_lastTimeValid) { s_lastTimeValid = tv; want = true; }
-  if (!tv) return want;
+  // A chosen moment needs no clock at all - it is the one thing on the
+  // device that can be drawn before the first HTTP response.
+  if (!tv && !s_browsing) return want;
 
-  if (!s_chartOk || millis() - s_chartAt >= RECOMPUTE_MS) { recompute(); want = true; }
+  const unsigned long now = millis();
+  // At now the chart ages a minute between recomputes; browsing, it is
+  // recomputed the moment the time changes (s_chartOk drops) and not otherwise.
+  if (!s_chartOk || (!s_browsing && now - s_chartAt >= RECOMPUTE_MS)) { recompute(); want = true; }
+
+  // The chips tidy themselves away; the wheel finds its own way back to now.
+  if (s_chips && now - s_chipsAt >= CHIPS_HOLD_MS) { s_chips = false; want = true; }
+  if (s_browsing && now - s_lastUse >= BROWSE_IDLE_MS) { ScreenPlanets_SetNow(); want = true; }
 
   // The detail expiring is a change on screen, so it has to ask for a redraw.
   if (s_sel >= 0 && millis() - s_selAt >= DETAIL_HOLD_MS) { s_sel = -1; want = true; }
@@ -438,6 +580,82 @@ static void drawCentre() {
   UI_TextCentered(buf, CY + 28, C_WHITE, 1);
 }
 
+// --- Drawing: the time chips -----------------------------------------------
+static void chipRect(int cx, int cy, int w, int h, uint16_t border) {
+  gfx->fillRoundRect(cx - w / 2, cy - h / 2, w, h, 8, C_DKGRAY);
+  gfx->drawRoundRect(cx - w / 2, cy - h / 2, w, h, 8, border);
+}
+
+static void drawArrow(int cx, int cy, int dir, uint16_t col) {
+  if (dir < 0) gfx->fillTriangle(cx - 7, cy, cx + 5, cy - 8, cx + 5, cy + 8, col);
+  else         gfx->fillTriangle(cx + 7, cy, cx - 5, cy - 8, cx - 5, cy + 8, col);
+}
+
+static const char* unitName() {
+  switch (s_unit) {
+    case 0:  return T(S_U_HOUR);
+    case 2:  return T(S_U_MONTH);
+    case 3:  return T(S_U_YEAR);
+    default: return T(S_U_DAY);
+  }
+}
+
+static void drawChips() {
+  if (!s_chips) return;
+  const time_t t = shownTime();
+  const bool atMin = t <= T_MIN, atMax = t >= T_MAX;
+
+  // The arrows, greyed out at the ends of the range.
+  chipRect(CX - CHIP_DX, CHIP_Y, CHIP_ARW, CHIP_H, C_GRAY);
+  drawArrow(CX - CHIP_DX, CHIP_Y, -1, atMin ? C_GRAY : C_WHITE);
+  chipRect(CX + CHIP_DX, CHIP_Y, CHIP_ARW, CHIP_H, C_GRAY);
+  drawArrow(CX + CHIP_DX, CHIP_Y, +1, atMax ? C_GRAY : C_WHITE);
+
+  // NOW: lit while it would do something, quiet while the wheel is at now.
+  const uint16_t nowCol = s_browsing ? C_YELLOW : C_GRAY;
+  chipRect(CX, CHIP_Y, CHIP_NOW, CHIP_H, nowCol);
+  const char* nowTxt = T(S_T_NOW);
+  UI_TextCentered(nowTxt, CHIP_Y - 8, nowCol, 2);
+  if (strcmp(nowTxt, "Ted") == 0) {
+    // The font has no Ď: a caron over the D, drawn by hand. The text is
+    // three size-2 characters, so the D is the twelve pixels right of CX+6.
+    const int dx = CX + 12, top = CHIP_Y - 8;
+    gfx->drawLine(dx - 4, top - 5, dx, top - 2, nowCol);
+    gfx->drawLine(dx, top - 2, dx + 4, top - 5, nowCol);
+  }
+
+  // The step: tap to cycle hour, day, month, year.
+  chipRect(CX, UNIT_Y, UNIT_W, UNIT_H, C_GRAY);
+  UI_TextCentered(unitName(), UNIT_Y - 8, C_WHITE, 2);
+}
+
+// Which chip is under a finger: 1 back, 2 now, 3 forward, 4 the unit, 0 none.
+// Targets a little larger than the chips - the glass is being tapped at
+// arm's length.
+static int chipAt(int x, int y) {
+  if (!s_chips) return 0;
+  if (abs(y - CHIP_Y) <= CHIP_H / 2 + 6) {
+    if (abs(x - (CX - CHIP_DX)) <= CHIP_ARW / 2 + 6) return 1;
+    if (abs(x - CX) <= CHIP_NOW / 2 + 4) return 2;
+    if (abs(x - (CX + CHIP_DX)) <= CHIP_ARW / 2 + 6) return 3;
+  }
+  if (abs(y - UNIT_Y) <= UNIT_H / 2 + 8 && abs(x - CX) <= UNIT_W / 2 + 8) return 4;
+  return 0;
+}
+
+// The clock line at the top says what moment the wheel is for. At now that is
+// the ordinary status line; browsing, the date and time of the wheel in
+// yellow, so a chart of 1987 can never be mistaken for tonight's.
+static void drawBrowseLine() {
+  const Civil c = toLocal(s_at);
+  char txt[24];
+  if (Lang_Get() == LANG_EN) snprintf(txt, sizeof(txt), "%04d-%02d-%02d %02d:%02d", c.Y, c.M, c.D, c.h, c.mi);
+  else                       snprintf(txt, sizeof(txt), "%d.%d.%04d %02d:%02d", c.D, c.M, c.Y, c.h, c.mi);
+  const int w = Layout_TextW(txt, 2);
+  gfx->fillRect(CX - w / 2 - 6, LY_STATUS - 3, w + 12, 22, C_BLACK);
+  UI_TextCentered(txt, LY_STATUS, C_YELLOW, 2);
+}
+
 // --- Drawing: the detail panel ---------------------------------------------
 static void fmtSignDeg(float lon, char* out, size_t cap, bool full) {
   const float d = Astro_DegInSign(lon);
@@ -552,9 +770,10 @@ void ScreenPlanets_Draw() {
   Layout_Begin();
   Layout_ReserveBand(LY_DOTS - 6, 12);
   Layout_ReserveBand(LY_STATUS - 3, 22);
-  UI_DrawStatusLine(LY_STATUS);
+  if (s_browsing) drawBrowseLine();
+  else            UI_DrawStatusLine(LY_STATUS);
 
-  if (!Outside_TimeValid()) {
+  if (!Outside_TimeValid() && !s_browsing) {
     // The chart is a function of the time and nothing else, so without the
     // clock there is genuinely nothing to draw. The clock arrives with the
     // first HTTP response of any other screen - usually within seconds.
@@ -570,6 +789,7 @@ void ScreenPlanets_Draw() {
   drawAspects();
   drawPlanets();
   drawCentre();
+  drawChips();
   drawDetail();
 }
 
@@ -581,6 +801,15 @@ bool ScreenPlanets_HandleTap(int x, int y) {
   if (s_sel >= 0) {
     s_sel = -1;
     return true;
+  }
+
+  // The time chips, while they are up.
+  switch (chipAt(x, y)) {
+    case 1: stepTime(-1);                touched(); return true;
+    case 3: stepTime(+1);                touched(); return true;
+    case 2: ScreenPlanets_SetNow();      touched(); return true;
+    case 4: s_unit = (s_unit + 1) % 4;   touched(); return true;
+    default: break;
   }
 
   // A planet: the nearest disc within reach of a finger. Discs are 22 px
@@ -606,5 +835,27 @@ bool ScreenPlanets_HandleTap(int x, int y) {
       return true;
     }
   }
-  return false;
+
+  // Anywhere else on the wheel: the time chips come up, or go away again.
+  s_chips = !s_chips;
+  touched();
+  return true;
+}
+
+bool ScreenPlanets_HandleHold(int x, int y, unsigned long heldMs) {
+  if (heldMs < s_holdPrev) s_holdNext = 0;      // a new touch has begun
+  s_holdPrev = heldMs;
+  if (!s_chips || heldMs < HOLD_START_MS) return false;
+  const int c = chipAt(x, y);
+  if (c != 1 && c != 3) return false;
+
+  // Running: one step per frame, so the planets visibly move - a whole year
+  // of days in half a minute, a century of years in eight seconds.
+  const unsigned long now = millis();
+  if (s_holdNext == 0 || (long)(now - s_holdNext) >= 0) {
+    stepTime(c == 1 ? -1 : +1);
+    s_holdNext = now + HOLD_STEP_MS;
+    touched();
+  }
+  return true;
 }

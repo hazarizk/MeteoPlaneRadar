@@ -53,3 +53,6 @@ bool WebConfig_WantsRestart();
 int WebConfig_TakeScreen();       // screen index, or -1 when nothing is pending
 int WebConfig_TakeScreenStep();   // -1 / +1, or 0
 int WebConfig_TakeRangeStep();    // -1 / +1, or 0
+// The planets wheel at a moment: 1 = set it to *at (UTC), 2 = back to now,
+// 0 = nothing pending.
+int WebConfig_TakePlanetsTime(time_t* at);

@@ -155,6 +155,7 @@ static int           s_lastX = 0, s_lastY = 0;
 static unsigned long s_startMs = 0;
 static unsigned long s_lastSeenMs = 0;
 static unsigned long s_lastPump = 0;
+static bool          s_holdConsumed = false;   // the screen took the held touch over
 
 // Read the touch and advance the gesture. Safe to call from inside a transfer.
 //
@@ -191,6 +192,13 @@ static void touchPump() {
   if (!s_touching || now - s_lastSeenMs < TOUCH_RELEASE_MS) return;
 
   s_touching = false;
+
+  // The planets screen may have taken the touch over while it was held (an
+  // arrow chip running the time). Then the release is the end of that and
+  // not a gesture of its own - a long press here would switch the screen
+  // away from the very thing being looked at.
+  if (s_holdConsumed) { s_holdConsumed = false; return; }
+
   const int dx = s_lastX - s_startX;
   const int dy = s_lastY - s_startY;
   const unsigned long dur = s_lastSeenMs - s_startMs;
@@ -435,8 +443,11 @@ static void autoRotateTick() {
   // An open aircraft detail holds the cycling: the user is reading it. The
   // timer is kept fresh rather than stopped, so when the panel closes - by a
   // tap, or because the aircraft dropped out of the data - cycling resumes with
-  // a full interval instead of switching away immediately.
+  // a full interval instead of switching away immediately. The planets wheel
+  // set to some other moment is being looked at the same way; it comes back
+  // to now by itself after ten minutes, and the cycling with it.
   if (activeModalOpen()) { s_lastRotate = now; return; }
+  if (s_screen == SCREEN_PLANETS_I && ScreenPlanets_Browsing()) { s_lastRotate = now; return; }
 
   if (now < s_touchPauseUntil) return;
   if (now - s_lastRotate < (unsigned long)secs * 1000UL) return;
@@ -658,6 +669,15 @@ void loop() {
 
   dispatchTouch();
 
+  // A finger still on the glass: the planets screen's arrow chips run the
+  // time while held. From loop() only, since every step redraws.
+  if (s_touching && s_screen == SCREEN_PLANETS_I && !activeModalOpen()) {
+    if (ScreenPlanets_HandleHold(s_lastX, s_lastY, millis() - s_startMs)) {
+      s_holdConsumed = true;
+      s_touchPauseUntil = millis() + autoRotatePauseMs();
+    }
+  }
+
   // The same actions, asked for from the web instead of the glass. They are
   // carried out here rather than in the request handler for the same reason a
   // gesture is - drawing must not happen from anywhere else.
@@ -677,6 +697,18 @@ void loop() {
     const int rng = WebConfig_TakeRangeStep();
     if (rng) {
       activeChangeRange(rng);
+      drawActive();
+      s_touchPauseUntil = millis() + autoRotatePauseMs();
+    }
+    // The planets wheel at a chosen moment, or back at now. Brings the screen
+    // up first: Enter() resets the wheel to now, so the moment is set after.
+    time_t at = 0;
+    const int pk = WebConfig_TakePlanetsTime(&at);
+    if (pk) {
+      if (activeModalOpen()) closeActiveModal();
+      gotoScreen(SCREEN_PLANETS_I);
+      if (pk == 1) ScreenPlanets_SetTime(at);
+      else         ScreenPlanets_SetNow();
       drawActive();
       s_touchPauseUntil = millis() + autoRotatePauseMs();
     }

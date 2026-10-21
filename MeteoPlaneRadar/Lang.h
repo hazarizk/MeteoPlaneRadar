@@ -112,6 +112,13 @@
   X(S_SKY,           "Obloha",             "Obloha",             "Sky") \
   X(S_BELOW_HORIZON, "pod obzorem",        "pod obzorem",        "below the horizon") \
   X(S_DAYTIME,       "ve dne",             "ve dne",             "daytime") \
+  /* The time chips at the foot of the planets screen. "Ted" gets its caron  \
+     drawn by hand on the panel; the unit names are the step of the arrows. */ \
+  X(S_T_NOW,         "Ted",                "Teď",                "Now") \
+  X(S_U_HOUR,        "hod.",               "hodina",             "hour") \
+  X(S_U_DAY,         "den",                "den",                "day") \
+  X(S_U_MONTH,       "mes.",               "měsíc",              "month") \
+  X(S_U_YEAR,        "rok",                "rok",                "year") \
   /* The bodies and the signs are indexed by AstroBody and by sign number:   \
      ScreenPlanets does T((StrId)(S_P_SUN + body)), so these two runs have to \
      stay contiguous and in this order. */                                    \

@@ -15,6 +15,24 @@ pohromadě v `MeteoPlaneRadar/Config.h`.
 
 ### Přidáno
 
+- **Planety: cestování v čase.** Klepnutí kamkoli na kolo ukáže dole šipky
+  ◀ Teď ▶ a pod nimi krok (hodina, den, měsíc, rok; klepnutím se střídá).
+  Šipka posune kolo o jeden krok, držená šipka čas rozběhne (dvanáct kroků
+  za vteřinu, tedy rok po dnech za půl minuty, století po letech za osm
+  vteřin) a planety se na kole hýbou, retrográdní smyčky včetně. Datum a čas
+  kola se ukazuje nahoře žlutě místo hodin, aby se obloha roku 1987 nedala
+  splést s dnešní. Teď kolo vrátí; vrátí se i samo po deseti minutách bez
+  dotyku nebo při odchodu z obrazovky, takže displej nikdy nezůstane stát
+  v minulosti. Automatické střídání obrazovek zatím čeká. Rozsah je
+  1800–2100, kam sahají dráhové elementy (`Astro.*`); na krajích šipka
+  zešedne. Čipy se po minutě samy schovají.
+
+  Na webu na záložce Ovládání je pole s datem a časem: `Ukázat` kolo nastaví
+  na zadaný okamžik (typicky hodina narození) a obrazovku přepne, `Teď` ho
+  vrátí. Stav kola se zrcadlí ve stavu zařízení (`planetsAt`), nové
+  `POST /api/planets` `{"at":"1987-10-21T14:00"}` nebo `{"now":true}`. Čas
+  je místní podle zóny zařízení. Rok mimo 1800–2100 web odmítne.
+
 - **Planety.** Nová obrazovka: geocentrický pohled na sluneční soustavu tak,
   jak ho kreslí horoskop. Po obvodu zvěrokruh s dvanácti znameními v barvách
   živlů (oheň, země, vzduch, voda), s klasickými glyfy a stupňovou stupnicí,

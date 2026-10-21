@@ -63,7 +63,7 @@ It is not a phone and does not try to be one.
 | **Forecast** | now, two 3-hour windows, today and six more days, air quality and pollen | Open-Meteo |
 | **Electricity price** | spot price on a quarter-hour dial, today and tomorrow | OTE via spotovaelektrina.cz |
 | **Generation** | what the grid is running on, renewable share, load, export | Energy-Charts (Fraunhofer ISE) |
-| **Planets** | geocentric view as on a horoscope wheel: zodiac, planets, ascendant, aspects, Moon phase, what is above the horizon right now; tap a planet for its detail | computed on the device |
+| **Planets** | geocentric view as on a horoscope wheel: zodiac, planets, ascendant, aspects, Moon phase, what is above the horizon right now; tap a planet for its detail; the arrows at the foot (or a date on the web page) move the wheel anywhere between 1800 and 2100 | computed on the device |
 | **Settings** | brightness, map orientation, units, language | — |
 
 Any of the first seven can be switched off in the browser; Settings is always
@@ -258,7 +258,8 @@ startup**, which is a factory reset and also erases WiFi.
 | Gesture | Action |
 | --- | --- |
 | **Swipe** left/right | Change the range (aircraft, weather radar) |
-| **Short tap** | Select an aircraft; on the clock, toggle day/night; on the planets, open a planet's detail |
+| **Short tap** | Select an aircraft; on the clock, toggle day/night; on the planets, open a planet's detail, or elsewhere on the wheel show the time arrows |
+| **Hold an arrow** (Planets) | The wheel runs through time; tap the step under the arrows to cycle hour, day, month, year |
 | **Long press, left half** | Previous screen |
 | **Long press, right half** | Next screen |
 | **Hold BOOT at startup (~3 s)** | Factory reset |

@@ -120,6 +120,13 @@ td:first-child{color:var(--mut);width:50%}
       <button class="sec" id="rPlus" onclick="stepRange(1)">+</button>
     </div>
     <p class="hint" data-i18n="remoteHint">Rozsah se mění jen na obrazovkách Letadla a Meteoradar. Zásah pozastaví automatické střídání.</p>
+    <div class="row" id="plRow">
+      <span data-i18n="plAtLbl">Planety v čase</span>
+      <input type="datetime-local" id="plAt" min="1800-01-01T00:00" max="2100-12-31T23:59" style="flex:1 1 170px">
+      <button class="sec" onclick="planetsAt()" data-i18n="plShow">Ukázat</button>
+      <button class="sec" id="plNowBtn" onclick="planetsNow()" data-i18n="plNowBtn">Teď</button>
+    </div>
+    <p class="hint" data-i18n="plAtHint">Obrazovka Planety nakreslí nebe pro zadaný čas, třeba hodinu narození, od roku 1800 do 2100. Na zařízení totéž dělají šipky dole na kole: klepnutí na kolo je ukáže, klepnutí na šipku posune čas o hodinu, den, měsíc nebo rok, držení šipky čas rozběhne. Zpět na teď: tlačítko Teď, odchod z obrazovky, nebo deset minut bez dotyku.</p>
   </div>
 
   <div class="card">
@@ -195,6 +202,7 @@ td:first-child{color:var(--mut);width:50%}
         <li data-i18n="plHelpAspects">Barevné čáry uprostřed jsou aspekty, jen těsné do 2° od přesného úhlu: červená opozice (180°), oranžová kvadratura (90°), modrá trigon (120°), zelená sextil (60°). Konjunkce se nekreslí, je vidět jako planety u sebe. Klepnutí doprostřed čáry schová a zase ukáže.</li>
         <li data-i18n="plHelpMoon">Uprostřed je Měsíc s dnešní fází (osvětlená část kotouče), pod ním dorůstá/couvá a ascendent slovy. Je to jen náhled fáze, ne poloha: skutečné místo Měsíce ve zvěrokruhu ukazuje symbol ☽ na kole jako u ostatních planet.</li>
         <li data-i18n="plHelpControls">Ovládání: klepnutí na planetu otevře detail (znamení a stupeň, obloha, vzdálenost, denní pohyb, oběh, vzdálenost od Slunce, rychlost, elongace; u Měsíce osvětlení). Přejetí prstem otočí kolo: ascendent vlevo, nebo 0° Berana vlevo napevno. Dlouhý stisk přepne obrazovku.</li>
+        <li data-i18n="plHelpTime">Čas: klepnutí kamkoli na kolo ukáže dole šipky ◀ Teď ▶ a pod nimi krok (hodina, den, měsíc, rok; klepnutím se střídá). Šipka posune kolo o jeden krok, držená šipka čas rozběhne a planety se hýbou. Datum a čas kola svítí nahoře žlutě. Teď vrátí dnešek; kolo se vrátí samo i po deseti minutách bez dotyku nebo při odchodu z obrazovky. Rozsah 1800–2100, kam sahají dráhové elementy. Přesné datum (třeba narození) se zadá na záložce Ovládání.</li>
         <li data-i18n="plHelpSource">Polohy se počítají v zařízení z dráhových elementů (tropický zodiak, geocentricky, střední měsíční uzel), s přesností na několik úhlových minut proti Swiss Ephemeris. Čas je UTC z hlavičky Date.</li>
       </ul>
     </details>
@@ -366,6 +374,9 @@ const D={
   plHelpAspects:"Barevné čáry uprostřed jsou aspekty, jen těsné do 2° od přesného úhlu: červená opozice (180°), oranžová kvadratura (90°), modrá trigon (120°), zelená sextil (60°). Konjunkce se nekreslí, je vidět jako planety u sebe. Klepnutí doprostřed čáry schová a zase ukáže.",
   plHelpMoon:"Uprostřed je Měsíc s dnešní fází (osvětlená část kotouče), pod ním dorůstá/couvá a ascendent slovy. Je to jen náhled fáze, ne poloha: skutečné místo Měsíce ve zvěrokruhu ukazuje symbol ☽ na kole jako u ostatních planet.",
   plHelpControls:"Ovládání: klepnutí na planetu otevře detail (znamení a stupeň, obloha, vzdálenost, denní pohyb, oběh, vzdálenost od Slunce, rychlost, elongace; u Měsíce osvětlení). Přejetí prstem otočí kolo: ascendent vlevo, nebo 0° Berana vlevo napevno. Dlouhý stisk přepne obrazovku.",
+  plHelpTime:"Čas: klepnutí kamkoli na kolo ukáže dole šipky ◀ Teď ▶ a pod nimi krok (hodina, den, měsíc, rok; klepnutím se střídá). Šipka posune kolo o jeden krok, držená šipka čas rozběhne a planety se hýbou. Datum a čas kola svítí nahoře žlutě. Teď vrátí dnešek; kolo se vrátí samo i po deseti minutách bez dotyku nebo při odchodu z obrazovky. Rozsah 1800–2100, kam sahají dráhové elementy. Přesné datum (třeba narození) se zadá na záložce Ovládání.",
+  plAtLbl:"Planety v čase",plShow:"Ukázat",plNowBtn:"Teď",plNoDate:"Zadejte datum a čas",plRange:"Jen roky 1800 až 2100",
+  plAtHint:"Obrazovka Planety nakreslí nebe pro zadaný čas, třeba hodinu narození, od roku 1800 do 2100. Na zařízení totéž dělají šipky dole na kole: klepnutí na kolo je ukáže, klepnutí na šipku posune čas o hodinu, den, měsíc nebo rok, držení šipky čas rozběhne. Zpět na teď: tlačítko Teď, odchod z obrazovky, nebo deset minut bez dotyku.",
   plHelpSource:"Polohy se počítají v zařízení z dráhových elementů (tropický zodiak, geocentricky, střední měsíční uzel), s přesností na několik úhlových minut proti Swiss Ephemeris. Čas je UTC z hlavičky Date.",
   planetsHint:"Geocentrický pohled jako v horoskopu — zvěrokruh, planety podle délky na ekliptice, ascendent pro vaši polohu a aspekty. Počítá se přímo v zařízení, žádná data se nestahují. Klepnutím na planetu se zobrazí znamení, vzdálenost, denní pohyb a oběžné údaje.",
   energyPrice:"Cena elektřiny",energyMix:"Výroba ČR",
@@ -432,6 +443,9 @@ const D={
   plHelpAspects:"The coloured lines in the middle are aspects, only tight ones within 2° of exact: red opposition (180°), orange square (90°), blue trine (120°), green sextile (60°). Conjunctions are not drawn, they show as planets next to each other. Tap the middle to hide or show the lines.",
   plHelpMoon:"In the middle is the Moon with tonight's phase (the lit part of the disc), under it waxing/waning and the ascendant in words. That is only the phase, not a position: where the Moon actually stands in the zodiac is shown by the ☽ symbol on the wheel, like every other planet.",
   plHelpControls:"Controls: tap a planet for its detail (sign and degree, sky, distance, daily motion, orbit, distance from the Sun, speed, elongation; for the Moon the illumination). Swipe to turn the wheel: ascendant on the left, or 0° Aries on the left fixed. A long press changes the screen.",
+  plHelpTime:"Time: tap anywhere on the wheel and the chips ◀ Now ▶ come up at the foot, with the step under them (hour, day, month, year; tap to cycle). An arrow moves the wheel one step, a held arrow runs the time and the planets move. The wheel's date and time show in yellow at the top. Now brings today back; the wheel also comes back by itself after ten minutes alone or on leaving the screen. Range 1800-2100, as far as the orbital elements reach. An exact date (a birth, say) is entered on the Control tab.",
+  plAtLbl:"Planets at a time",plShow:"Show",plNowBtn:"Now",plNoDate:"Enter a date and time",plRange:"Years 1800 to 2100 only",
+  plAtHint:"The Planets screen draws the sky for the moment entered, a birth hour for instance, from 1800 to 2100. On the device the arrows at the foot of the wheel do the same: tap the wheel to show them, tap an arrow to move an hour, a day, a month or a year, hold it to run. Back to now: the Now button, leaving the screen, or ten minutes untouched.",
   plHelpSource:"Positions are computed on the device from orbital elements (tropical zodiac, geocentric, mean lunar node), to within a few arc minutes of the Swiss Ephemeris. Time is UTC from the Date header.",
   planetsHint:"A geocentric view as on a horoscope wheel - the zodiac, the planets by ecliptic longitude, the ascendant for your location and the aspects. Computed on the device itself, nothing is downloaded. Tap a planet for its sign, distance, daily motion and orbital data.",
   energyPrice:"Electricity price",energyMix:"Czech generation",
@@ -484,7 +498,7 @@ const D={
   settings:"Settings",
   saved:"Saved",failed:"Failed",searching:"Searching…",nothing:"Nothing found",
   disabled:"That screen is switched off",confirmReset:"Really erase all settings including WiFi?"}};
-let L="cs", CFG={}, TAB="tCtl";
+let L="cs", CFG={}, TAB="tCtl", plAtDev="";
 const $=id=>document.getElementById(id);
 
 function setLang(v){L=(v==1||v=="en")?"en":"cs";$("uiLang").value=(L=="en")?"1":"0";
@@ -521,11 +535,15 @@ function drawScrBtns(cur,enabled){
 }
 async function post(u,b){try{const r=await fetch(u,{method:"POST",headers:{"Content-Type":"application/json"},
  body:JSON.stringify(b)});
- if(r.status==409)msg(D[L].disabled,"warn");else if(!r.ok)msg(D[L].failed,"err");
+ if(r.status==409)msg(D[L].disabled,"warn");
+ else if(r.status==400&&u=="/api/planets")msg(D[L].plRange,"warn");
+ else if(!r.ok)msg(D[L].failed,"err");
  await status();}catch(e){msg(D[L].failed,"err")}}
 function goScreen(i){post("/api/screen",{index:i});}
 function stepScreen(d){post("/api/screen",{step:d});}
 function stepRange(d){post("/api/range",{step:d});}
+function planetsAt(){const v=$("plAt").value;if(!v){msg(D[L].plNoDate,"warn");return;}post("/api/planets",{at:v});}
+function planetsNow(){post("/api/planets",{now:true});}
 
 // --- Okamzite ukladani ------------------------------------------------------
 // The API applies only the keys it actually receives, so a single field can be
@@ -643,6 +661,9 @@ async function status(){
  $("rangeNow").textContent=hasR?s.range:"–";
  $("rMinus").disabled=!hasR;$("rPlus").disabled=!hasR;
  $("rMinus").style.opacity=$("rPlus").style.opacity=hasR?"1":".4";
+ const pa=s.planetsAt||"";
+ if(pa!==plAtDev){plAtDev=pa;$("plAt").value=pa;}
+ $("plNowBtn").className=pa?"":"sec";
  const rows=[["IP",s.ip],["WiFi",s.ssid+" ("+s.rssi+" dBm)"],["Uptime",s.uptime],
   ["Heap",s.heap+" B"],["PSRAM",s.psram+" B"],["Restart",s.resetReason],
   ["ADS-B",s.adsb],["Radar",s.radar],[D[L].scrForecast,s.forecast],

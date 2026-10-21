@@ -35,6 +35,7 @@
 #include <math.h>
 #include <string.h>
 #include "TimeZone.h"
+#include "TimeUtil.h"
 
 static WebServer  s_srv(WEB_PORT);
 static DNSServer  s_dns;
@@ -48,6 +49,8 @@ static volatile bool s_updating = false;
 static int s_reqScreen     = -1;
 static int s_reqScreenStep = 0;
 static int s_reqRangeStep  = 0;
+static int    s_reqPlanetsKind = 0;    // 0 nothing, 1 a moment, 2 back to now
+static time_t s_reqPlanetsAt   = 0;
 
 bool WebConfig_UpdateBusy()        { return s_updating; }
 bool WebConfig_WantsWifiConnect()  { return s_wantConnect; }
@@ -57,6 +60,12 @@ bool WebConfig_WantsRestart()      { return s_wantRestart; }
 int WebConfig_TakeScreen()     { int v = s_reqScreen;     s_reqScreen = -1;    return v; }
 int WebConfig_TakeScreenStep() { int v = s_reqScreenStep; s_reqScreenStep = 0; return v; }
 int WebConfig_TakeRangeStep()  { int v = s_reqRangeStep;  s_reqRangeStep = 0;  return v; }
+int WebConfig_TakePlanetsTime(time_t* at) {
+  const int k = s_reqPlanetsKind;
+  s_reqPlanetsKind = 0;
+  if (at) *at = s_reqPlanetsAt;
+  return k;
+}
 
 // --- Helpers ----------------------------------------------------------------
 static void sendJson(int code, JsonDocument& doc) {
@@ -224,6 +233,35 @@ static void handleRange() {
   s_srv.send(200, "application/json", "{\"ok\":true}");
 }
 
+// The planets wheel at a moment: {"at":"1987-10-21T14:00"} in the device's
+// local time (what the browser's date field produces), or {"now":true}. Years
+// outside 1800-2100 are refused rather than clamped - the orbital elements
+// are not valid there, so there would be nothing true to draw.
+static void handlePlanets() {
+  JsonDocument doc;
+  if (!readBody(doc)) { s_srv.send(400, "application/json", "{\"error\":\"json\"}"); return; }
+  if (!Settings_ScreenEnabled(SCREEN_PLANETS_I)) {
+    s_srv.send(409, "application/json", "{\"error\":\"disabled\"}");
+    return;
+  }
+  if (doc["now"] | false) {
+    s_reqPlanetsKind = 2;
+    s_srv.send(200, "application/json", "{\"ok\":true}");
+    return;
+  }
+  const char* at = doc["at"] | "";
+  int Y = 0, M = 0, D = 0, h = 0, mi = 0;
+  if (sscanf(at, "%d-%d-%dT%d:%d", &Y, &M, &D, &h, &mi) != 5
+      || Y < 1800 || Y > 2100 || M < 1 || M > 12 || D < 1 || D > 31
+      || h < 0 || h > 23 || mi < 0 || mi > 59) {
+    s_srv.send(400, "application/json", "{\"error\":\"range\"}");
+    return;
+  }
+  s_reqPlanetsAt   = TimeUtil_UtcToEpoch(Y, M, D, h, mi, 0) - TimeZone_Offset();
+  s_reqPlanetsKind = 1;
+  s_srv.send(200, "application/json", "{\"ok\":true}");
+}
+
 static void handleStatus() {
   JsonDocument doc;
   doc["version"] = FW_VERSION;
@@ -284,6 +322,11 @@ static void handleStatus() {
   // The planets screen's two states are the two orientations of the wheel.
   else if (scr == SCREEN_PLANETS_I) ScreenPlanets_RangeText(rb, sizeof(rb));
   doc["range"] = rb;                       // empty on screens without one
+  // The moment the planets wheel is set to, for the date field on the page;
+  // empty while it shows now.
+  char pb[24];
+  ScreenPlanets_BrowseIso(pb, sizeof(pb));
+  doc["planetsAt"] = pb;
 
   JsonArray en = doc["enabled"].to<JsonArray>();
   for (uint8_t i = 0; i < SCREEN_N; i++) en.add(Settings_ScreenEnabled(i));
@@ -622,6 +665,7 @@ void WebConfig_Begin(bool apMode) {
   s_srv.on("/api/status", HTTP_GET, handleStatus);
   s_srv.on("/api/screen", HTTP_POST, handleScreen);
   s_srv.on("/api/range", HTTP_POST, handleRange);
+  s_srv.on("/api/planets", HTTP_POST, handlePlanets);
   s_srv.on("/api/scan", HTTP_GET, handleScan);
   s_srv.on("/api/wifi", HTTP_POST, handleWifi);
   s_srv.on("/api/geocode", HTTP_GET, handleGeocode);
