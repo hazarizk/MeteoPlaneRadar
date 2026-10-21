@@ -55,7 +55,7 @@
 // did) and how long the streak behind a fast one is, as a fraction of the
 // way it moved in the last frame.
 #define FLY_STARS   70
-#define FLY_GROWTH  1.9f
+#define FLY_GROWTH  1.4f
 #define FLY_TRAIL   0.8f
 
 // Aspect lines run between points on this inner circle; the middle inside it
