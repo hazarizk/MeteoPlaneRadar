@@ -191,6 +191,10 @@ td:first-child{color:var(--mut);width:50%}
         <option value="1" data-i18n="planetNamesIntl">mezinárodní (Aries, Taurus, Jupiter…)</option>
       </select></div>
     <p class="hint" data-i18n="planetNamesHint">Ukládá se hned, bez restartu. Mezinárodní názvy jsou latinské, tedy stejné jako anglické.</p>
+    <div class="row">
+      <label class="chk"><input type="checkbox" id="planetFly"><span data-i18n="planetFly">Letící hvězdy v pozadí</span></label>
+    </div>
+    <p class="hint" data-i18n="planetFlyHint">Hvězdy vylétají ze středu kola k okraji skla jako ve starém spořiči obrazovky, pod prstencem projdou a vynoří se za ním. Ukládá se hned. Obrazovka se pak překresluje dvanáctkrát za vteřinu, dokud je zobrazená.</p>
     <details class="help">
       <summary data-i18n="plHelpTitle">Co je na obrazovce a jak se čte</summary>
       <ul class="hint">
@@ -365,6 +369,8 @@ const D={
   planetNames:"Názvy na obrazovce Planety",planetNamesLang:"podle jazyka rozhraní",
   planetNamesIntl:"mezinárodní (Aries, Taurus, Jupiter…)",
   planetNamesHint:"Ukládá se hned, bez restartu. Mezinárodní názvy jsou latinské, tedy stejné jako anglické.",
+  planetFly:"Letící hvězdy v pozadí",
+  planetFlyHint:"Hvězdy vylétají ze středu kola k okraji skla jako ve starém spořiči obrazovky, pod prstencem projdou a vynoří se za ním. Ukládá se hned. Obrazovka se pak překresluje dvanáctkrát za vteřinu, dokud je zobrazená.",
   plHelpTitle:"Co je na obrazovce a jak se čte",
   plHelpZodiac:"Zvěrokruh: dvanáct znamení po 30° v barvách živlů — červená oheň, zelená země, žlutá vzduch, modrá voda. Běží proti směru hodinových ručiček jako v horoskopu.",
   plHelpPlanets:"Planety: symbol v barvě planety na své ekliptikální délce; čárka na vnitřním okraji prstence ukazuje přesný stupeň. Planety blízko sebe (konjunkce) se řadí pod sebe, nikdy přes sebe.",
@@ -434,6 +440,8 @@ const D={
   planetNames:"Names on the Planets screen",planetNamesLang:"interface language",
   planetNamesIntl:"international (Aries, Taurus, Jupiter…)",
   planetNamesHint:"Saved immediately, no restart. The international names are the Latin ones, which are the English ones.",
+  planetFly:"Flying stars in the background",
+  planetFlyHint:"Stars stream out of the middle of the wheel to the edge of the glass like the old screensaver, pass under the ring and come out beyond it. Saved immediately. The screen then redraws twelve times a second for as long as it is showing.",
   plHelpTitle:"What is on the screen and how to read it",
   plHelpZodiac:"Zodiac: twelve signs of 30° in the colours of the elements - red fire, green earth, yellow air, blue water. It runs anticlockwise, as on a horoscope wheel.",
   plHelpPlanets:"Planets: the symbol in the planet's colour at its ecliptic longitude; the tick on the inner edge of the ring marks the exact degree. Planets close together (a conjunction) stack inwards, never on top of each other.",
@@ -589,6 +597,7 @@ const AUTO = [
  ["priceVat","change","priceVat",e=>+e.value],
  ["mixCountry","change","mixCountry",e=>e.value],
  ["planetIntl","change","planetIntl",e=>e.value=="1"],
+ ["planetFly","change","planetFly",e=>e.checked],
 ];
 function wireAutoSave(){
  AUTO.forEach(([id,ev,key,get])=>{
@@ -612,6 +621,7 @@ async function load(){
  $("sPrice").checked=!!CFG.screens.price;$("sMix").checked=!!CFG.screens.mix;
  $("sPlanets").checked=!!CFG.screens.planets;
  $("planetIntl").value=CFG.planetIntl?"1":"0";
+ $("planetFly").checked=!!CFG.planetFly;
  $("priceFee").value=CFG.priceFee||0;$("priceVat").value=CFG.priceVat||0;
  $("mixCountry").value=CFG.mixCountry||"cz";
  feeHint();
@@ -687,6 +697,7 @@ function body(){return{lat:parseFloat($("lat").value),lon:parseFloat($("lon").va
  priceFee:+$("priceFee").value,priceVat:+$("priceVat").value,
  mixCountry:$("mixCountry").value,
  planetIntl:$("planetIntl").value=="1",
+ planetFly:$("planetFly").checked,
  screens:{clock:$("sClock").checked,planes:$("sPlanes").checked,meteo:$("sMeteo").checked,
   forecast:$("sForecast").checked,price:$("sPrice").checked,mix:$("sMix").checked,
   planets:$("sPlanets").checked}};}

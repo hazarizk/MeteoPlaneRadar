@@ -90,6 +90,12 @@ void    Settings_SetMeteoLegend(bool on);
 bool    Settings_PlanetNamesIntl();
 void    Settings_SetPlanetNamesIntl(bool on);
 
+// Stars flying past behind the planets wheel, the way the old screensaver
+// did it. Off by default: it keeps the screen redrawing twelve times a second
+// for as long as it is showing, and a wall display is usually better still.
+bool    Settings_PlanetFly();
+void    Settings_SetPlanetFly(bool on);
+
 // --- Energy -----------------------------------------------------------------
 //
 // What the user pays on top of the exchange price. Everything the device knows

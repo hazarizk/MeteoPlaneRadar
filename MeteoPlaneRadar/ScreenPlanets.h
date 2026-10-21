@@ -12,7 +12,9 @@
 //  nothing else: no network request, no API, no key.
 //
 //  What is on it:
-//    - a field of faint stars, fixed to the zodiac so it turns with the ring
+//    - a field of faint stars, fixed to the zodiac so it turns with the ring,
+//      and, if switched on from the web page, stars flying out of the middle
+//      past the ring to the edge of the glass, screensaver fashion
 //    - the zodiac ring, the four elements in four colours, degree ticks
 //    - the planets as their classic glyphs (AstroGlyphs.h), colour-coded,
 //      each on a small shaded disc in its hue, with a pointer to their exact

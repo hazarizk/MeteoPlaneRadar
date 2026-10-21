@@ -49,6 +49,15 @@
 #define STARS_INNER 150
 #define STARS_OUTER  80
 
+// The flying stars (Settings_PlanetFly): how many are in the air at once, how
+// fast they come (their distance from the centre grows by this factor per
+// second - perspective, so they accelerate outwards as the old screensaver's
+// did) and how long the streak behind a fast one is, as a fraction of the
+// way it moved in the last frame.
+#define FLY_STARS   70
+#define FLY_GROWTH  1.9f
+#define FLY_TRAIL   0.8f
+
 // Aspect lines run between points on this inner circle; the middle inside it
 // is for the Moon's phase and the ascendant. 70 rather than something
 // smaller: at 58 the few lines crossed in a knot the size of a fingernail.
@@ -261,6 +270,7 @@ static unsigned long s_chipsAt = 0;
 static bool          s_dirty = false;       // changed outside Tick, wants a redraw
 static unsigned long s_holdNext = 0;        // next step of a held arrow
 static unsigned long s_holdPrev = 0;        // heldMs last seen, to spot a new touch
+static bool          s_flyInit = false;     // the flying stars have been dealt out (see drawFlyStars)
 
 static time_t shownTime() { return s_browsing ? s_at : time(nullptr); }
 
@@ -369,6 +379,7 @@ void ScreenPlanets_Enter() {
   s_placed = false;
   s_browsing = false;         // a new visit starts at now
   s_chips = false;
+  s_flyInit = false;          // a fresh, full sky of flying stars
 }
 
 void ScreenPlanets_ChangeRange(int dir) {
@@ -410,6 +421,9 @@ bool ScreenPlanets_Tick() {
 
   // The clock at the top moves every minute.
   if (UI_StatusLineChanged()) want = true;
+
+  // Flying stars: every frame the loop will give (it caps at ~12 a second).
+  if (Settings_PlanetFly()) want = true;
   return want;
 }
 
@@ -479,6 +493,79 @@ static void drawStars() {
   uint32_t seed = 0x9E3779B9u;
   drawStarBand(seed, STARS_INNER, (float)(R_ASPECT + 8), (float)(R_ZIN - 5));
   drawStarBand(seed, STARS_OUTER, (float)(R_ZOUT + 4), (float)(LCD_WIDTH / 2 - 4));
+}
+
+// --- The flying stars -------------------------------------------------------
+// Stars streaming out of the middle towards the edge of the glass, the way
+// the old "flying through space" screensaver drew them: the Earth is in the
+// middle, so this is the view ahead. Each star has a direction and a distance
+// from the centre; the distance grows by a constant factor per second, which
+// is what perspective does to a star coming at you at constant speed - slow
+// and faint far away, fast and bright as it passes. A star is born just
+// outside the aspect circle and dies at the glass; in between it passes under
+// the zodiac ring, which is drawn over it, and comes out on the far side.
+// The static field stays underneath for depth.
+struct FlyStar { float ang, r, prev; uint8_t tint; };
+static FlyStar       s_fly[FLY_STARS];
+static unsigned long s_flyAt = 0;
+static uint32_t      s_flySeed = 0x2545F491u;
+
+static float flyRnd() { s_flySeed = s_flySeed * 1664525u + 1013904223u; return (float)(s_flySeed >> 8) * (1.0f / 16777216.0f); }
+
+static void flyBirth(FlyStar& s, bool anywhere) {
+  s.ang  = flyRnd() * 6.2831853f;
+  // On the first frame the sky is already full; afterwards a star is born
+  // at the inner edge and makes the whole journey.
+  const float r0 = (float)(R_ASPECT + 10);
+  s.r    = anywhere ? r0 + flyRnd() * (LCD_WIDTH / 2 - 8 - r0) : r0 + flyRnd() * 6.0f;
+  s.prev = s.r;
+  s.tint = (uint8_t)(flyRnd() * 3.0f);        // 0 white, 1 warm, 2 cool
+}
+
+static void drawFlyStars() {
+  const unsigned long now = millis();
+  if (!s_flyInit) {
+    for (int i = 0; i < FLY_STARS; i++) flyBirth(s_fly[i], true);
+    s_flyInit = true;
+    s_flyAt = now;
+  }
+  // Advance by the time really elapsed, so the speed is the same whether the
+  // frame took 80 ms or - behind a download - two seconds; but never more
+  // than a quarter second at once, or every star would jump off the glass.
+  float dt = (float)(now - s_flyAt) / 1000.0f;
+  s_flyAt = now;
+  if (dt > 0.25f) dt = 0.25f;
+  const float growth = powf(FLY_GROWTH, dt);
+  const float rMax = (float)(LCD_WIDTH / 2 - 4);
+
+  for (int i = 0; i < FLY_STARS; i++) {
+    FlyStar& s = s_fly[i];
+    s.prev = s.r;
+    s.r *= growth;
+    if (s.r > rMax) { flyBirth(s, false); continue; }
+
+    // Brightness with distance travelled: a quarter grey at birth, white at
+    // the glass; the tint is a touch of colour in the middle of the run.
+    const float k = (s.r - R_ASPECT) / (rMax - R_ASPECT);       // 0..1
+    const int   v = 8 + (int)(23.0f * k);                       // 5-bit 8..31
+    int r5 = v, g6 = v * 2, b5 = v;
+    if (s.tint == 1) b5 = (b5 * 3) / 4;                         // warm
+    if (s.tint == 2) r5 = (r5 * 3) / 4;                         // cool
+    const uint16_t col = (uint16_t)((r5 << 11) | (g6 << 5) | b5);
+
+    const float c = cosf(s.ang), sn = sinf(s.ang);
+    const int x1 = CX + (int)lroundf(s.r * c), y1 = CY - (int)lroundf(s.r * sn);
+    // The streak: from where it was last frame (most of the way) to here.
+    // Short near the middle, a comet's tail by the edge.
+    const float rt = s.r - (s.r - s.prev) * FLY_TRAIL;
+    const int x0 = CX + (int)lroundf(rt * c), y0 = CY - (int)lroundf(rt * sn);
+    if (x0 != x1 || y0 != y1) gfx->drawLine(x0, y0, x1, y1, scale565(col, 9));
+    gfx->drawPixel(x1, y1, col);
+    if (k > 0.6f) {                                             // the near ones are a little larger
+      gfx->drawPixel(x1 + 1, y1, scale565(col, 8));
+      gfx->drawPixel(x1, y1 + 1, scale565(col, 8));
+    }
+  }
 }
 
 // --- Drawing: the ring ------------------------------------------------------
@@ -898,6 +985,7 @@ void ScreenPlanets_Draw() {
   if (!s_chartOk) recompute();
 
   drawStars();
+  if (Settings_PlanetFly()) drawFlyStars();
   drawZodiac();
   drawAxes();
   drawAspects();

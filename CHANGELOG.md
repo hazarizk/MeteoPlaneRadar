@@ -15,6 +15,14 @@ pohromadě v `MeteoPlaneRadar/Config.h`.
 
 ### Přidáno
 
+- **Planety: letící hvězdy.** Volba na webové kartě Planety (vypnuto
+  výchozí, ukládá se hned): hvězdy vylétají ze středu kola k okraji skla jako
+  ve starém spořiči „let vesmírem“ - zrychlují perspektivně, u okraje mají
+  ohon, pod prstencem projdou a vynoří se za ním. Pohyb jde podle skutečně
+  uplynulého času, takže za staženým souborem nepřeskočí. Obrazovka se pak
+  překresluje dvanáctkrát za vteřinu, dokud je zobrazená; nehybné hvězdné
+  pozadí zůstává pod nimi.
+
 - **Planety: hvězdné nebe, stínované planety, hladké symboly.** Za kolem je
   pole slabých hvězd, pevně spojené se zvěrokruhem, takže se otáčí s kolem
   jako skutečné stálice (generuje se ze semínka, nic se neukládá). Každá

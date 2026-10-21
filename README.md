@@ -23,7 +23,7 @@ ESP32-S3-Touch-LCD-2.1 a ESP32-S3-Touch-LCD-2.8C a nastavuje se z prohlížeče.
 | **Předpověď** | nyní, +3 h, +6 h, dnes, zítra, pozítří a další dny, ovzduší a pyl | Open-Meteo |
 | **Cena elektřiny** | spotová cena na 24hodinovém ciferníku, dnes i zítra | OTE přes spotovaelektrina.cz |
 | **Výroba ČR** | z čeho se právě vyrábí, podíl OZE, spotřeba, vývoz | ENTSO-E přes energy-charts |
-| **Planety** | geocentrický pohled jako v horoskopu: zvěrokruh, planety, ascendent, aspekty, fáze Měsíce, co je právě nad obzorem; klepnutí na planetu ukáže detail; šipkami dole (nebo datem na webu) se kolo posune kamkoli mezi roky 1800 a 2100 | počítá se v zařízení |
+| **Planety** | geocentrický pohled jako v horoskopu: zvěrokruh, planety, ascendent, aspekty, fáze Měsíce, co je právě nad obzorem; klepnutí na planetu ukáže detail; šipkami dole (nebo datem na webu) se kolo posune kamkoli mezi roky 1800 a 2100; volitelně letící hvězdy v pozadí | počítá se v zařízení |
 | **Nastavení** | jas, orientace mapy, jednotky, jazyk | — |
 
 Prvních sedm jde vypnout, Nastavení je dostupné vždy. Rozhraní je česky nebo

@@ -63,7 +63,7 @@ It is not a phone and does not try to be one.
 | **Forecast** | now, two 3-hour windows, today and six more days, air quality and pollen | Open-Meteo |
 | **Electricity price** | spot price on a quarter-hour dial, today and tomorrow | OTE via spotovaelektrina.cz |
 | **Generation** | what the grid is running on, renewable share, load, export | Energy-Charts (Fraunhofer ISE) |
-| **Planets** | geocentric view as on a horoscope wheel: zodiac, planets, ascendant, aspects, Moon phase, what is above the horizon right now; tap a planet for its detail; the arrows at the foot (or a date on the web page) move the wheel anywhere between 1800 and 2100 | computed on the device |
+| **Planets** | geocentric view as on a horoscope wheel: zodiac, planets, ascendant, aspects, Moon phase, what is above the horizon right now; tap a planet for its detail; the arrows at the foot (or a date on the web page) move the wheel anywhere between 1800 and 2100; optional flying stars in the background | computed on the device |
 | **Settings** | brightness, map orientation, units, language | — |
 
 Any of the first seven can be switched off in the browser; Settings is always
