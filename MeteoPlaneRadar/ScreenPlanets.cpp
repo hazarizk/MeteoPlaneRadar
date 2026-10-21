@@ -84,17 +84,19 @@ static_assert(sizeof(time_t) >= 8, "time travel to 1800 needs a 64-bit time_t");
 #define HOLD_START_MS     500UL   // a finger on an arrow this long starts it running
 #define HOLD_STEP_MS       80UL   // ...and then it steps this often - the draw cap
 
-// The chips: < NOW > in a row over the foot of the ring, the step unit in a
-// smaller chip under them, in the sliver of glass below the ring that nothing
-// else uses. The row's ends sit well inside the chord of the circle there.
-#define CHIP_Y    430
+// The chips: < NOW > in a row just under the ring (its outer edge is at
+// y=428), the step unit in a smaller chip under them, in the sliver of glass
+// at the foot that nothing else uses. The row's ends sit inside the chord of
+// the circle there; the unit chip's rounded corners clear the glass by a
+// couple of pixels, which is as low as anything can go.
+#define CHIP_Y    440
 #define CHIP_H     28
 #define CHIP_ARW   44
 #define CHIP_NOW   76
 #define CHIP_DX    68             // centre of each arrow chip from CX
-#define UNIT_Y    458
-#define UNIT_H     20
-#define UNIT_W     72
+#define UNIT_Y    466
+#define UNIT_H     18
+#define UNIT_W     64
 
 // --- Colours ----------------------------------------------------------------
 // The bodies. Chosen to be told apart at arm's length on black, and roughly
