@@ -14,6 +14,7 @@
 #include "Lang.h"
 #include "UI.h"
 #include "Display_ST7701.h"
+#include "Canvas16.h"
 #include "Config.h"
 #include "TimeZone.h"
 #include "TimeUtil.h"
@@ -37,10 +38,16 @@
 // each other, so a planet that would collide with one already placed drops
 // one step inwards - the way a chart stacks a conjunction.
 #define R_PLANET  128
-#define R_STEP     26
+#define R_STEP     28
 #define R_LEVELS    3
 #define PLANET_R   12       // half the glyph box (24 px glyphs, AstroGlyphs.h)
+#define R_DISC     14       // the shaded disc under each glyph
 #define MIN_SEP_DEG 12.0f   // closer than this at the same radius = stack
+
+// The stars: how many in the planet area (between the aspect circle and the
+// ring) and how many outside the ring, out to the glass.
+#define STARS_INNER 150
+#define STARS_OUTER  80
 
 // Aspect lines run between points on this inner circle; the middle inside it
 // is for the Moon's phase and the ascendant. 70 rather than something
@@ -128,19 +135,75 @@ static inline uint16_t dim565(uint16_t c) {
   return (uint16_t)((r << 11) | (g << 5) | b);
 }
 
-// A glyph from AstroGlyphs.h, centred on (cx, cy), lit pixels in col. Drawn
-// as horizontal runs rather than single pixels; a glyph is a few dozen runs.
+// --- Blending ---------------------------------------------------------------
+// The canvas is a plain RGB565 framebuffer in PSRAM (Canvas16), so a pixel can
+// be read back and a colour laid over it with some coverage. That is what
+// makes the glyph edges smooth, and lets a glyph sit on a shaded disc, on a
+// sector of the ring or among the stars without a box around it.
+static inline uint16_t blend565(uint16_t bg, uint16_t fg, uint8_t a) {   // a = 0..15
+  if (a >= 15) return fg;
+  const uint16_t ia = 15 - a;
+  const uint16_t r = (((bg >> 11) & 31) * ia + ((fg >> 11) & 31) * a) / 15;
+  const uint16_t g = (((bg >> 5) & 63) * ia + ((fg >> 5) & 63) * a) / 15;
+  const uint16_t b = ((bg & 31) * ia + (fg & 31) * a) / 15;
+  return (uint16_t)((r << 11) | (g << 5) | b);
+}
+static inline void blendPixel(int x, int y, uint16_t col, uint8_t a) {
+  if (a == 0 || x < 0 || y < 0 || x >= LCD_WIDTH || y >= LCD_HEIGHT) return;
+  uint16_t* fb = static_cast<Canvas16*>(gfx)->getFramebuffer();
+  if (!fb) return;
+  uint16_t& p = fb[(int32_t)y * LCD_WIDTH + x];
+  p = blend565(p, col, a);
+}
+// k/16 of a colour's brightness, same hue.
+static inline uint16_t scale565(uint16_t c, int k) {
+  const int r = (((c >> 11) & 31) * k) >> 4, g = (((c >> 5) & 63) * k) >> 4, b = ((c & 31) * k) >> 4;
+  return (uint16_t)((r << 11) | (g << 5) | b);
+}
+
+// A glyph from AstroGlyphs.h, centred on (cx, cy), blended in col. Each
+// character of a row is the coverage of that pixel in sixteen steps ('.' is
+// none, '1'..'9' and 'a'..'f' more, 'f' or '#' solid).
+static inline uint8_t glyphLevel(char c) {
+  if (c >= '1' && c <= '9') return (uint8_t)(c - '0');
+  if (c >= 'a' && c <= 'f') return (uint8_t)(c - 'a' + 10);
+  if (c == '#') return 15;
+  return 0;
+}
 static void drawGlyph(int cx, int cy, const AstroGlyph& g, uint16_t col) {
   const int x0 = cx - g.w / 2, y0 = cy - g.h / 2;
   for (int y = 0; y < g.h; y++) {
     const char* r = g.rows[y];
-    int x = 0;
-    while (x < g.w) {
-      if (r[x] != '#') { x++; continue; }
-      int x1 = x;
-      while (x1 < g.w && r[x1] == '#') x1++;
-      gfx->drawFastHLine(x0 + x, y0 + y, x1 - x, col);
-      x = x1;
+    for (int x = 0; x < g.w; x++) {
+      const uint8_t a = glyphLevel(r[x]);
+      if (a) blendPixel(x0 + x, y0 + y, col, a);
+    }
+  }
+}
+
+// The small sphere under each glyph: dark, tinted in the body's hue, lit from
+// the upper left, with a rim in the body's colour. It covers the stars and
+// the aspect lines behind the glyph, so the symbol always reads against a
+// quiet ground, and it is what makes the wheel look like planets in a sky
+// rather than characters on a chart. The edge is anti-aliased the same way as
+// the glyphs.
+static void drawPlanetDisc(int cx, int cy, uint16_t col) {
+  const float R = (float)R_DISC;
+  for (int dy = -R_DISC - 1; dy <= R_DISC + 1; dy++) {
+    for (int dx = -R_DISC - 1; dx <= R_DISC + 1; dx++) {
+      const float d = sqrtf((float)(dx * dx + dy * dy));
+      float cov = R + 0.5f - d;                 // coverage of the edge pixel
+      if (cov <= 0.0f) continue;
+      if (cov > 1.0f) cov = 1.0f;
+      // Shading: 0 at the highlight, up and left of the centre, 1 at the far
+      // rim. The ground runs from six sixteenths of the body's colour there
+      // down to one; the rim, the last pixel and a half, is at eight.
+      const float hx = (float)dx + 0.4f * R, hy = (float)dy + 0.4f * R;
+      float s = sqrtf(hx * hx + hy * hy) / (1.4f * R);
+      if (s > 1.0f) s = 1.0f;
+      int k = (int)(6.0f - 5.0f * s + 0.5f);
+      if (d > R - 1.5f) k = 8;
+      blendPixel(cx + dx, cy + dy, scale565(col, k), (uint8_t)(cov * 15.0f + 0.5f));
     }
   }
 }
@@ -374,6 +437,40 @@ static bool insideGlass(int x, int y, int halfW, int halfH) {
   return true;
 }
 
+// --- Drawing: the sky -------------------------------------------------------
+// A field of faint stars behind the wheel, fixed to the zodiac so that it
+// turns with the ring - as the fixed stars do. Generated from a seed every
+// frame, so it is always the same sky and costs no memory. Dim enough to sit
+// under everything: most stars are a fifth grey, a handful are half, and
+// the few brightest get a faint cross. The middle, inside the aspect circle,
+// is left dark - that is the Earth, and the aspect lines live there.
+static void drawStarBand(uint32_t& seed, int n, float rIn, float rOut) {
+  auto rnd = [&seed]() { seed = seed * 1664525u + 1013904223u; return (float)(seed >> 8) * (1.0f / 16777216.0f); };
+  for (int i = 0; i < n; i++) {
+    const float lon = rnd() * 360.0f;
+    const float r = sqrtf(rIn * rIn + rnd() * (rOut * rOut - rIn * rIn));
+    const float b = rnd();
+    int x, y;
+    polar(lonToRad(lon), r, &x, &y);
+    uint16_t c;
+    if      (b < 0.60f) c = 0x31A6;        // 19 % grey
+    else if (b < 0.88f) c = 0x5ACB;        // 35 %
+    else if (b < 0.97f) c = 0x8410;        // 52 %
+    else                c = 0xAD55;        // 68 %, with a cross
+    gfx->drawPixel(x, y, c);
+    if (b >= 0.97f) {
+      gfx->drawPixel(x - 1, y, 0x31A6); gfx->drawPixel(x + 1, y, 0x31A6);
+      gfx->drawPixel(x, y - 1, 0x31A6); gfx->drawPixel(x, y + 1, 0x31A6);
+    }
+  }
+}
+
+static void drawStars() {
+  uint32_t seed = 0x9E3779B9u;
+  drawStarBand(seed, STARS_INNER, (float)(R_ASPECT + 8), (float)(R_ZIN - 5));
+  drawStarBand(seed, STARS_OUTER, (float)(R_ZOUT + 4), (float)(LCD_WIDTH / 2 - 4));
+}
+
 // --- Drawing: the ring ------------------------------------------------------
 static void drawZodiac() {
   for (int s = 0; s < 12; s++) {
@@ -513,12 +610,15 @@ static void drawPlanets() {
     polar(a, (float)r, &x, &y);
     s_px[i] = (int16_t)x; s_py[i] = (int16_t)y;
 
-    // The symbol itself, as on a chart: no disc, just the glyph in the body's
-    // colour. Below the horizon at the device's location it is drawn dim, so
-    // one glance at the wheel says what is actually up tonight. The pointer
-    // on the ring follows suit.
+    // The body: a shaded disc in its hue with the glyph in full colour on
+    // top, the way a chart marks it. Below the horizon at the device's
+    // location the glyph is drawn dim and the disc darker still - a glyph
+    // and a disc dimmed alike would melt into each other - so one glance at
+    // the wheel says what is actually up tonight. The pointer on the ring
+    // follows the glyph.
     const bool up = p.altDeg >= 0.0f;
     const uint16_t drawCol = up ? col : dim565(col);
+    drawPlanetDisc(x, y, up ? col : scale565(col, 4));
     drawGlyph(x, y, PLANET_GLYPHS[i], drawCol);
     if (!up) {
       gfx->drawLine(CX + (int)((R_ZIN - 1) * c), CY - (int)((R_ZIN - 1) * sn),
@@ -526,14 +626,16 @@ static void drawPlanets() {
     }
 
     // Retrograde: a small red R at the lower right, the notation a printed
-    // chart uses.
+    // chart uses. On a black patch, so it reads over the disc's rim and the
+    // stars alike.
     if (p.retro) {
+      gfx->fillRect(x + R_DISC - 2, y + R_DISC - 10, 8, 10, C_BLACK);
       gfx->setTextSize(1);
       gfx->setTextColor(C_RED);
-      gfx->setCursor(x + PLANET_R + 1, y + PLANET_R - 7);
+      gfx->setCursor(x + R_DISC - 1, y + R_DISC - 9);
       gfx->print("R");
     }
-    if (i == s_sel) gfx->drawCircle(x, y, PLANET_R + 5, C_WHITE);
+    if (i == s_sel) gfx->drawCircle(x, y, R_DISC + 3, C_WHITE);
   }
   s_placed = true;
 }
@@ -784,6 +886,7 @@ void ScreenPlanets_Draw() {
   }
   if (!s_chartOk) recompute();
 
+  drawStars();
   drawZodiac();
   drawAxes();
   drawAspects();

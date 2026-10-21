@@ -15,6 +15,19 @@ pohromadě v `MeteoPlaneRadar/Config.h`.
 
 ### Přidáno
 
+- **Planety: hvězdné nebe, stínované planety, hladké symboly.** Za kolem je
+  pole slabých hvězd, pevně spojené se zvěrokruhem, takže se otáčí s kolem
+  jako skutečné stálice (generuje se ze semínka, nic se neukládá). Každá
+  planeta sedí na malém stínovaném kotouči ve své barvě, nasvíceném zleva
+  shora, s lemem v barvě planety; symbol je na něm v plné barvě. Pod obzorem
+  je symbol ztlumený a kotouč ještě tmavší, aby rozdíl nahoře/dole zůstal
+  na první pohled. Symboly planet i znamení jsou nově vyhlazené: generátor
+  `tools/astro_glyphs.py` ukládá pokrytí každého pixelu v šestnácti stupních
+  (`.`, `1`–`9`, `a`–`f`) a firmware je míchá do framebufferu přes cokoli
+  pod nimi (kotouč, výseč prstence, hvězdy). Grafik může kterýkoli symbol
+  nahradit vlastním PNG v `tools/glyphs/` (název podle symbolu, světlé na
+  tmavém, čtvercové) a skript spustit znovu - kód se nemění.
+
 - **Planety: cestování v čase.** Klepnutí kamkoli na kolo ukáže dole šipky
   ◀ Teď ▶ a pod nimi krok (hodina, den, měsíc, rok; klepnutím se střídá).
   Šipka posune kolo o jeden krok, držená šipka čas rozběhne (dvanáct kroků

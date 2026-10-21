@@ -12,10 +12,12 @@
 //  nothing else: no network request, no API, no key.
 //
 //  What is on it:
+//    - a field of faint stars, fixed to the zodiac so it turns with the ring
 //    - the zodiac ring, the four elements in four colours, degree ticks
 //    - the planets as their classic glyphs (AstroGlyphs.h), colour-coded,
-//      with a pointer to their exact degree; a red R next to one means it is
-//      retrograde; a dim one is below the horizon at the device's location
+//      each on a small shaded disc in its hue, with a pointer to their exact
+//      degree; a red R next to one means it is retrograde; a dim one is
+//      below the horizon at the device's location
 //    - the ascendant/descendant and MC/IC axes for the device's location
 //    - aspect lines between planets within two degrees of exact
 //      (conjunction is a stacking, the others are drawn), colour by aspect;
