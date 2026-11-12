@@ -11,7 +11,7 @@ pohromadě v `MeteoPlaneRadar/Config.h`.
 
 ---
 
-## [Unreleased]
+## [0.7.1]
 
 ### Přidáno
 
