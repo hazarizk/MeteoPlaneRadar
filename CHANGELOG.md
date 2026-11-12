@@ -27,9 +27,8 @@ pohromadě v `MeteoPlaneRadar/Config.h`.
   pole slabých hvězd, pevně spojené se zvěrokruhem, takže se otáčí s kolem
   jako skutečné stálice (generuje se ze semínka, nic se neukládá). Každá
   planeta sedí na malém stínovaném kotouči ve své barvě, nasvíceném zleva
-  shora, s lemem v barvě planety; symbol je na něm v plné barvě. Pod obzorem
-  je symbol ztlumený a kotouč ještě tmavší, aby rozdíl nahoře/dole zůstal
-  na první pohled. Symboly planet i znamení jsou nově vyhlazené: generátor
+  shora, s lemem v barvě planety; symbol je na něm v plné barvě. Planety pod
+  obzorem svítí stejně jako ty nad ním. Symboly planet i znamení jsou nově vyhlazené: generátor
   `tools/astro_glyphs.py` ukládá pokrytí každého pixelu v šestnácti stupních
   (`.`, `1`–`9`, `a`–`f`) a firmware je míchá do framebufferu přes cokoli
   pod nimi (kotouč, výseč prstence, hvězdy). Grafik může kterýkoli symbol
@@ -82,8 +81,8 @@ pohromadě v `MeteoPlaneRadar/Config.h`.
   daly přečíst. Klepnutí doprostřed je schová.
 
   Poloha zařízení (ta samá, co má radar) rozhoduje i o tom, co je právě nad
-  obzorem: planety pod obzorem jsou na kole ztlumené, planety nad ním svítí
-  plnou barvou. Klepnutí na planetu otevře detail: znamení a
+  obzorem: obzor je čára ASC–DSC, planety pod ním i nad ním svítí na kole
+  stejně. Klepnutí na planetu otevře detail: znamení a
   stupeň, obloha (výška nad obzorem a světová strana, „pod obzorem“, nebo
   „ve dne“, když ji přesvítí Slunce), vzdálenost od Země (Měsíc v km), denní
   pohyb (záporný = retrográdní), oběžná doba, střední vzdálenost od Slunce,
@@ -105,6 +104,20 @@ pohromadě v `MeteoPlaneRadar/Config.h`.
   v záložce Obrazovky, ze stejného důvodu jako energetické obrazovky v 0.7.0:
   index je připojený na konec, bity v NVS pro ostatní obrazovky zůstávají.
   Nastavení se posouvá z indexu 6 na 7.
+
+### Opraveno
+
+- **Planety: dlouhý stisk u šipek času už nepřepne obrazovku.** Když prst
+  dopadl těsně vedle šipky, nebo celý stisk proběhl během stahování dat,
+  bral se jako běžný dlouhý stisk a přepnul na další obrazovku (Nastavení).
+  Dlouhý stisk v pásu časových tlačítek teď patří jim: na tlačítku udělá
+  totéž co klepnutí, mezi nimi nic.
+
+### Změněno
+
+- **`sketch.yaml`: aktuální verze jádra a knihoven.** ESP32 core 3.3.10,
+  GFX Library for Arduino 1.6.9, PNGdec 1.1.6. Se staršími připnutými
+  verzemi (3.0.7 / 1.4.9 / 1.0.1) se projekt už nepřeložil.
 
 ## [0.7.0]
 

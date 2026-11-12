@@ -13,10 +13,10 @@ profiles:
   default:
     fqbn: esp32:esp32:esp32s3:PSRAM=opi,FlashSize=16M,PartitionScheme=custom,CDCOnBoot=cdc,FlashMode=qio
     platforms:
-      - platform: esp32:esp32 (3.0.7)
+      - platform: esp32:esp32 (3.3.10)
     libraries:
-      - GFX Library for Arduino (1.4.9)
-      - PNGdec (1.0.1)
+      - GFX Library for Arduino (1.6.9)
+      - PNGdec (1.1.6)
       - ArduinoJson (7.1.0)
 
 default_profile: default
