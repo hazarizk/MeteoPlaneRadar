@@ -18,8 +18,8 @@
 //    - the zodiac ring, the four elements in four colours, degree ticks
 //    - the planets as their classic glyphs (AstroGlyphs.h), colour-coded,
 //      each on a small shaded disc in its hue, with a pointer to their exact
-//      degree; a red R next to one means it is retrograde; a dim one is
-//      below the horizon at the device's location
+//      degree; a red R next to one means it is retrograde; bodies below the
+//      horizon at the device's location are drawn as bright as the rest
 //    - the ascendant/descendant and MC/IC axes for the device's location
 //    - aspect lines between planets within two degrees of exact
 //      (conjunction is a stacking, the others are drawn), colour by aspect;
@@ -89,3 +89,8 @@ void ScreenPlanets_BrowseIso(char* out, size_t cap);
 // the time. True = the screen has taken the touch over: the release must not
 // be turned into a tap or a long press.
 bool ScreenPlanets_HandleHold(int x, int y, unsigned long heldMs);
+// A long press that HandleHold did not take over (it only runs from loop(),
+// and only on an arrow). True = it landed in the band of the time chips while
+// they were up and has been dealt with there - the screen manager must not
+// turn it into "next screen". On a chip it does what a tap would.
+bool ScreenPlanets_HandleLongPress(int x, int y);

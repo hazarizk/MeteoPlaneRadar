@@ -138,14 +138,6 @@ static const uint16_t C_ELEM_TEXT[4] = { 0xFBCB, 0x7F2F, 0xFF2F, 0x7DBF };
 #define C_AXIS       0x4208
 #define C_EARTH      0x3DBC
 
-// Under half the brightness, same hue: a body below the horizon. Dim enough
-// that the eye sorts the wheel into "up" and "down" at a glance, bright
-// enough that the symbol can still be read and tapped.
-static inline uint16_t dim565(uint16_t c) {
-  const int r = ((c >> 11) & 0x1F) * 2 / 5, g = ((c >> 5) & 0x3F) * 2 / 5, b = (c & 0x1F) * 2 / 5;
-  return (uint16_t)((r << 11) | (g << 5) | b);
-}
-
 // --- Blending ---------------------------------------------------------------
 // The canvas is a plain RGB565 framebuffer in PSRAM (Canvas16), so a pixel can
 // be read back and a colour laid over it with some coverage. That is what
@@ -708,19 +700,12 @@ static void drawPlanets() {
     s_px[i] = (int16_t)x; s_py[i] = (int16_t)y;
 
     // The body: a shaded disc in its hue with the glyph in full colour on
-    // top, the way a chart marks it. Below the horizon at the device's
-    // location the glyph is drawn dim and the disc darker still - a glyph
-    // and a disc dimmed alike would melt into each other - so one glance at
-    // the wheel says what is actually up tonight. The pointer on the ring
-    // follows the glyph.
-    const bool up = p.altDeg >= 0.0f;
-    const uint16_t drawCol = up ? col : dim565(col);
-    drawPlanetDisc(x, y, up ? col : scale565(col, 4));
-    drawGlyph(x, y, PLANET_GLYPHS[i], drawCol);
-    if (!up) {
-      gfx->drawLine(CX + (int)((R_ZIN - 1) * c), CY - (int)((R_ZIN - 1) * sn),
-                    CX + (int)((R_ZIN - 9) * c), CY - (int)((R_ZIN - 9) * sn), drawCol);
-    }
+    // top, the way a chart marks it. A body below the horizon at the
+    // device's location is drawn just as bright as one above it: it shines
+    // all the same, only the Earth is in the way. Which side it is on reads
+    // from the horizon line across the wheel, and from the detail card.
+    drawPlanetDisc(x, y, col);
+    drawGlyph(x, y, PLANET_GLYPHS[i], col);
 
     // Retrograde: a small red R at the lower right, the notation a printed
     // chart uses. On a black patch, so it reads over the disc's rim and the
@@ -1040,6 +1025,22 @@ bool ScreenPlanets_HandleTap(int x, int y) {
 
   // Anywhere else on the wheel: the time chips come up, or go away again.
   s_chips = !s_chips;
+  touched();
+  return true;
+}
+
+bool ScreenPlanets_HandleLongPress(int x, int y) {
+  if (!s_chartOk || !s_chips || s_sel >= 0) return false;
+  // The whole foot of the glass from a little above the chips: a finger
+  // aiming at an arrow at arm's length lands beside it often enough.
+  if (y < CHIP_Y - CHIP_H / 2 - 14) return false;
+  switch (chipAt(x, y)) {
+    case 1: stepTime(-1);              break;
+    case 3: stepTime(+1);              break;
+    case 2: ScreenPlanets_SetNow();    break;
+    case 4: s_unit = (s_unit + 1) % 5; break;
+    default: break;                    // between the chips: nothing, but ours
+  }
   touched();
   return true;
 }

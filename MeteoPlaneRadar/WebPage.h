@@ -200,7 +200,7 @@ td:first-child{color:var(--mut);width:50%}
       <ul class="hint">
         <li data-i18n="plHelpZodiac">Zvěrokruh: dvanáct znamení po 30° v barvách živlů — červená oheň, zelená země, žlutá vzduch, modrá voda. Běží proti směru hodinových ručiček jako v horoskopu.</li>
         <li data-i18n="plHelpPlanets">Planety: symbol v barvě planety na své ekliptikální délce; čárka na vnitřním okraji prstence ukazuje přesný stupeň. Planety blízko sebe (konjunkce) se řadí pod sebe, nikdy přes sebe.</li>
-        <li data-i18n="plHelpHorizon">Ztlumená planeta je právě pod obzorem ve vaší poloze, planeta v plné barvě je nad ním. Čára ASC–DSC je obzor.</li>
+        <li data-i18n="plHelpHorizon">Čára ASC–DSC je obzor ve vaší poloze. Planety pod obzorem svítí na kole stejně jako ty nad ním; kde planeta právě je, ukáže její detail.</li>
         <li data-i18n="plHelpRetro">Červené R u planety: retrográdní pohyb, planeta zdánlivě couvá zvěrokruhem.</li>
         <li data-i18n="plHelpAxes">Šipky ASC a MC: ascendent (stupeň, který právě vychází na východě) a střed nebe (stupeň na jižním poledníku). Počítají se z vaší polohy a času.</li>
         <li data-i18n="plHelpAspects">Barevné čáry uprostřed jsou aspekty, jen těsné do 2° od přesného úhlu: červená opozice (180°), oranžová kvadratura (90°), modrá trigon (120°), zelená sextil (60°). Konjunkce se nekreslí, je vidět jako planety u sebe. Klepnutí doprostřed čáry schová a zase ukáže.</li>
@@ -374,7 +374,7 @@ const D={
   plHelpTitle:"Co je na obrazovce a jak se čte",
   plHelpZodiac:"Zvěrokruh: dvanáct znamení po 30° v barvách živlů — červená oheň, zelená země, žlutá vzduch, modrá voda. Běží proti směru hodinových ručiček jako v horoskopu.",
   plHelpPlanets:"Planety: symbol v barvě planety na své ekliptikální délce; čárka na vnitřním okraji prstence ukazuje přesný stupeň. Planety blízko sebe (konjunkce) se řadí pod sebe, nikdy přes sebe.",
-  plHelpHorizon:"Ztlumená planeta je právě pod obzorem ve vaší poloze, planeta v plné barvě je nad ním. Čára ASC–DSC je obzor.",
+  plHelpHorizon:"Čára ASC–DSC je obzor ve vaší poloze. Planety pod obzorem svítí na kole stejně jako ty nad ním; kde planeta právě je, ukáže její detail.",
   plHelpRetro:"Červené R u planety: retrográdní pohyb, planeta zdánlivě couvá zvěrokruhem.",
   plHelpAxes:"Šipky ASC a MC: ascendent (stupeň, který právě vychází na východě) a střed nebe (stupeň na jižním poledníku). Počítají se z vaší polohy a času.",
   plHelpAspects:"Barevné čáry uprostřed jsou aspekty, jen těsné do 2° od přesného úhlu: červená opozice (180°), oranžová kvadratura (90°), modrá trigon (120°), zelená sextil (60°). Konjunkce se nekreslí, je vidět jako planety u sebe. Klepnutí doprostřed čáry schová a zase ukáže.",
@@ -445,7 +445,7 @@ const D={
   plHelpTitle:"What is on the screen and how to read it",
   plHelpZodiac:"Zodiac: twelve signs of 30° in the colours of the elements - red fire, green earth, yellow air, blue water. It runs anticlockwise, as on a horoscope wheel.",
   plHelpPlanets:"Planets: the symbol in the planet's colour at its ecliptic longitude; the tick on the inner edge of the ring marks the exact degree. Planets close together (a conjunction) stack inwards, never on top of each other.",
-  plHelpHorizon:"A dimmed planet is below the horizon at your location right now, one in full colour is above it. The ASC-DSC line is the horizon.",
+  plHelpHorizon:"The ASC-DSC line is the horizon at your location. Planets below the horizon are drawn as bright as those above it; a planet's detail says where it is right now.",
   plHelpRetro:"A red R next to a planet: retrograde motion, the planet appears to move backwards through the zodiac.",
   plHelpAxes:"The ASC and MC arrows: the ascendant (the degree rising in the east right now) and the midheaven (the degree on the southern meridian). Both come from your location and the time.",
   plHelpAspects:"The coloured lines in the middle are aspects, only tight ones within 2° of exact: red opposition (180°), orange square (90°), blue trine (120°), green sextile (60°). Conjunctions are not drawn, they show as planets next to each other. Tap the middle to hide or show the lines.",

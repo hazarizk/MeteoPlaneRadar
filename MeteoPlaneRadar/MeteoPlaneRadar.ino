@@ -220,7 +220,7 @@ static void touchPump() {
     s_pendA = (dx < 0) ? +1 : -1;
   } else if (smallMove && dur >= 500) {
     s_pendKind = PEND_LONG;
-    s_pendA = s_lastX;
+    s_pendA = s_lastX; s_pendB = s_lastY;
   } else if (smallMove) {
     s_pendKind = PEND_TAP;
     s_pendA = s_lastX; s_pendB = s_lastY;
@@ -414,6 +414,11 @@ static void dispatchTouch() {
       break;
     case PEND_LONG:
       if (activeModalOpen()) { closeActiveModal(); drawActive(); }
+      // A long press down among the planets screen's time chips belongs to
+      // the chips, even when the hold never got to run - the finger was just
+      // off an arrow, or a download was blocking loop() for the whole press.
+      // It must not switch the screen away from the date being set.
+      else if (s_screen == SCREEN_PLANETS_I && ScreenPlanets_HandleLongPress(a, b)) drawActive();
       else switchScreen(a < LCD_WIDTH / 2 ? -1 : +1);
       s_touchPauseUntil = millis() + autoRotatePauseMs();
       break;
